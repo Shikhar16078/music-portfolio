@@ -1,85 +1,92 @@
-import { motion } from 'motion/react'
-import { Badge } from '@/components/ui/badge'
-import { rise, stagger, ease } from '@/lib/motion'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Footer } from '@/components/site/footer'
+import { Header } from '@/components/site/header'
+import { Hero } from '@/components/site/hero'
+import { SECTIONS } from '@/components/site/nav'
+import { Accent, Section } from '@/components/site/section'
+import { useSiteSettings } from '@/lib/queries'
+import { useActiveSection } from '@/lib/use-active-section'
 
-/** Relative bar heights for the "breathing" waveform (0–1). */
-const BARS = [
-  0.18, 0.3, 0.46, 0.38, 0.62, 0.5, 0.78, 0.58, 0.92, 0.7, 1, 0.74, 0.86, 0.6, 0.72, 0.44, 0.56,
-  0.34, 0.42, 0.24, 0.3, 0.16,
-]
+const SECTION_IDS = SECTIONS.map((s) => s.id)
 
-/** Temporary landing page while the full site is built from the Paper design. */
-export default function App() {
+/** Placeholder body for sections that are built in later phases. */
+function ComingNext({ label }: { label: string }) {
   return (
-    <div className="relative flex min-h-svh flex-col overflow-hidden bg-bg text-fg">
-      {/* Lamplight glow, same as the design cover */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_80%_20%,color-mix(in_srgb,var(--accent)_14%,transparent),transparent_70%)]"
-      />
-
-      <header className="relative mx-auto flex w-full max-w-(--container-wide) items-center justify-between px-6 pt-8 md:px-12">
-        <div className="flex items-center gap-2">
-          <span className="font-heading text-xl font-medium tracking-tight">Shikhar Kumar</span>
-          <span aria-hidden className="size-2 rounded-full bg-accent" />
-        </div>
-        <span className="hidden font-mono text-xs tracking-wide text-fg-subtle uppercase sm:inline">
-          music.shikharkumar.in
-        </span>
-      </header>
-
-      <motion.main
-        initial="hidden"
-        animate="show"
-        variants={stagger}
-        className="relative mx-auto flex w-full max-w-(--container-wide) flex-1 flex-col justify-center gap-8 px-6 py-24 md:px-12"
-      >
-        <motion.div variants={rise}>
-          <Badge
-            variant="outline"
-            className="h-8 gap-2 rounded-full border-border-strong px-3 font-mono text-xs tracking-wide text-fg-muted uppercase"
-          >
-            <span aria-hidden className="size-1.5 animate-pulse rounded-full bg-accent" />
-            In the practice room
-          </Badge>
-        </motion.div>
-
-        <motion.h1
-          variants={rise}
-          className="max-w-4xl font-display text-[56px] leading-[56px] tracking-display md:text-5xl"
-        >
-          Still tuning <em className="text-accent">the piano.</em>
-        </motion.h1>
-
-        <motion.p variants={rise} className="max-w-(--container-prose) text-lg text-fg-muted">
-          This is where piano covers and practice tapes will live: film scores, Bollywood and pop,
-          rearranged for solo piano and recorded at home. The site is being built right now. Check
-          back soon.
-        </motion.p>
-
-        <motion.div variants={rise} aria-hidden className="flex h-16 items-center gap-1.5">
-          {BARS.map((h, i) => (
-            <motion.span
-              key={i}
-              className="w-1 rounded-full bg-accent"
-              style={{ height: `${h * 100}%` }}
-              animate={{ scaleY: [1, 0.55, 1] }}
-              transition={{
-                duration: 2.4,
-                ease: ease.breath,
-                repeat: Infinity,
-                delay: i * 0.08,
-              }}
-            />
-          ))}
-        </motion.div>
-      </motion.main>
-
-      <footer className="relative mx-auto w-full max-w-(--container-wide) px-6 pb-8 md:px-12">
-        <div className="border-t border-border pt-6 font-mono text-xs tracking-wide text-fg-subtle uppercase">
-          ©2026 Shikhar Kumar · All rights reserved
-        </div>
-      </footer>
+    <div className="flex flex-col gap-4 rounded-3xl border border-border bg-surface p-8">
+      <p className="font-mono text-xs tracking-wide text-fg-subtle uppercase">{label}</p>
+      <Skeleton className="h-6 w-1/2 bg-surface-raised" />
+      <Skeleton className="h-6 w-1/3 bg-surface-raised" />
     </div>
+  )
+}
+
+export default function App() {
+  const active = useActiveSection(SECTION_IDS, 'home')
+  const { data } = useSiteSettings()
+
+  return (
+    <>
+      <a
+        href="#journey"
+        className="sr-only z-50 rounded-full bg-accent px-4 py-2 text-accent-foreground focus:not-sr-only focus:fixed focus:top-4 focus:left-4"
+      >
+        Skip to content
+      </a>
+      <Header active={active} />
+      <main>
+        <Hero />
+        <Section
+          id="journey"
+          eyebrow="The journey"
+          title={
+            <>
+              Learning by ear, <Accent>one song at a time.</Accent>
+            </>
+          }
+          intro={data?.journeyIntro}
+        >
+          <ComingNext label="Chapters arrive in phase 2" />
+        </Section>
+        <Section
+          id="videos"
+          eyebrow="Videos · On YouTube"
+          title={
+            <>
+              Most played <Accent>covers</Accent>
+            </>
+          }
+          intro={data?.videosIntro}
+          className="bg-surface"
+        >
+          <ComingNext label="Videos arrive in phase 4" />
+        </Section>
+        <Section
+          id="listen"
+          eyebrow="Listen · Audio only"
+          title={
+            <>
+              From the <Accent>practice tapes.</Accent>
+            </>
+          }
+          intro={data?.listenIntro}
+        >
+          <ComingNext label="Player arrives in phase 3" />
+        </Section>
+        <Section
+          id="connect"
+          eyebrow="Connect"
+          title={
+            <span className="font-display text-[56px] leading-[56px] font-normal tracking-display md:text-5xl">
+              Pull up a <em className="text-accent">chair.</em>
+            </span>
+          }
+          intro={data?.connectIntro}
+          className="bg-surface"
+        >
+          <ComingNext label="Connect cards arrive in phase 5" />
+        </Section>
+      </main>
+      <Footer />
+    </>
   )
 }
