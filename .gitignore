@@ -27,3 +27,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Raw reference photos (large originals; optimised copies go into the app)
+design/photos/*
+!design/photos/README.md
