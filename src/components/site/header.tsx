@@ -37,7 +37,7 @@ export function Header({ active }: { active: SectionId }) {
       {/* Tablet and up */}
       <nav
         aria-label="Main"
-        className="mx-auto hidden h-18 max-w-(--container-wide) items-center justify-between rounded-full border border-border bg-surface/80 pr-3 pl-6 backdrop-blur-xl md:flex"
+        className="mx-auto hidden h-18 max-w-(--container-wide) items-center justify-between rounded-full border border-border bg-surface/80 pr-3 pl-6 backdrop-blur-xl md:flex 2xl:max-w-(--container-ultra)"
       >
         <ul className="flex items-center gap-1">
           {SECTIONS.map((s) => (

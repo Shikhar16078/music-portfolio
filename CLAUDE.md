@@ -57,7 +57,8 @@ Run `npm run build && npm run lint && npm run format:check` before committing.
   - desktop 1024–1599: content 1248 (96px gutters).
   - wide 1600–2559: content max 1280, centered.
   - ultra-wide ≥ 2560: content max 1600, centered. The docked player caps at the content width.
-  - Section backgrounds and the hero photo are always full-bleed. The hero grows taller on wide screens (960 / 1200).
+  - Section backgrounds and the hero photo are always full-bleed.
+- **Viewport-fit sections**: every section is at least one screen tall (`min-h-svh`) with its content centred below the nav (`screenSection` in `src/lib/layout.ts`). On tablet and up each section fits exactly one screen; on phone, Journey and Listen grow taller instead of shrinking text.
 - **Video meta**: `Genre · 120K views`. No "Piano" prefix, since every video is piano. Thumbnails are the real YouTube images with no decorative overlay; the duration chip and play button use media tokens.
 - **Footer** (every breakpoint): wordmark "Shikhar Kumar" with an accent dot, a short description, Explore + Elsewhere columns, and a bottom row with "© 2026 Shikhar Kumar · Recorded at home" and a "Back to top" button. No extra social buttons.
 - **Docked player width**: `min(100% − 48px, 1600px)`, centred, 24px from the bottom (phone uses the mini player).

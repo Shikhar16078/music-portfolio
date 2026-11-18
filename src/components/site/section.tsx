@@ -1,3 +1,4 @@
+import { screenSection } from '@/lib/layout'
 import type { ReactNode } from 'react'
 import { motion } from 'motion/react'
 import { rise, stagger } from '@/lib/motion'
@@ -20,13 +21,13 @@ export function Section({
   children?: ReactNode
 }) {
   return (
-    <section id={id} className={cn('scroll-mt-28 py-24 md:py-32', className)}>
+    <section id={id} className={cn(screenSection, className)}>
       <motion.div
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: '-80px' }}
         variants={stagger}
-        className="mx-auto flex max-w-(--container-wide) flex-col gap-12 px-6 md:px-12 lg:px-24"
+        className="mx-auto flex max-w-(--container-wide) flex-col gap-12 px-6 md:px-12 lg:px-24 2xl:max-w-(--container-ultra)"
       >
         <motion.div variants={rise} className="flex flex-col gap-4">
           <p className="font-mono text-xs tracking-wide text-accent uppercase">{eyebrow}</p>

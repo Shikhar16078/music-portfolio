@@ -16,7 +16,7 @@ export function Footer() {
   ].filter((l) => l.href)
 
   return (
-    <footer className="mx-auto w-full max-w-(--container-wide) px-6 pb-12 md:px-12 lg:px-24">
+    <footer className="mx-auto w-full max-w-(--container-wide) px-6 pb-12 md:px-12 lg:px-24 2xl:max-w-(--container-ultra)">
       <Separator />
       <div className="flex flex-col gap-12 py-16 md:flex-row md:gap-16">
         <div className="flex flex-col gap-4 md:flex-[1.6]">

@@ -86,17 +86,17 @@ export function Hero() {
   const { data, isPending } = useSiteSettings()
 
   return (
-    <section id="home" className="relative flex min-h-svh items-end lg:min-h-[880px]">
+    <section id="home" className="relative flex min-h-svh items-end">
       <HeroBackdrop />
       <motion.div
         initial="hidden"
         animate="show"
         variants={stagger}
-        className="relative mx-auto flex w-full max-w-(--container-wide) flex-col gap-6 px-6 pt-40 pb-20 md:px-12 md:pb-24 lg:px-24 lg:pb-32"
+        className="relative mx-auto flex w-full max-w-(--container-wide) flex-col gap-6 px-6 pt-40 pb-20 md:px-12 md:pb-24 lg:px-24 lg:pb-32 2xl:max-w-(--container-ultra)"
       >
         <motion.h1
           variants={rise}
-          className="max-w-3xl font-display text-[56px] leading-[56px] tracking-display md:text-[96px] md:leading-[96px] lg:text-5xl"
+          className="max-w-3xl font-display text-[56px] leading-[56px] tracking-display md:text-[96px] md:leading-[96px] lg:text-5xl 2xl:max-w-5xl 2xl:text-6xl"
         >
           Every song needs a <em className="text-accent">piano version.</em>
         </motion.h1>

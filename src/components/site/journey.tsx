@@ -1,3 +1,4 @@
+import { screenSection } from '@/lib/layout'
 import { useState } from 'react'
 import { ArrowDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { motion } from 'motion/react'
@@ -227,7 +228,7 @@ export function Journey() {
   const { data: chapters, isPending, isError } = useChapters()
 
   return (
-    <section id="journey" className="scroll-mt-28 py-24 md:py-32">
+    <section id="journey" className={screenSection}>
       <motion.div
         // Remount when the chapters arrive so their entrance animation runs too
         key={isPending ? 'loading' : 'ready'}
@@ -235,7 +236,7 @@ export function Journey() {
         whileInView="show"
         viewport={{ once: true, margin: '-80px' }}
         variants={stagger}
-        className="mx-auto max-w-(--container-wide) px-6 md:px-12 lg:px-24"
+        className="mx-auto max-w-(--container-wide) px-6 md:px-12 lg:px-24 2xl:max-w-(--container-ultra)"
       >
         {isPending ? (
           <div className="flex flex-col gap-4">
