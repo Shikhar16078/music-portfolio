@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   chaptersQuery,
+  recordingsQuery,
   sanity,
   siteSettingsQuery,
   type Chapter,
+  type Recording,
   type SiteSettings,
 } from '@/lib/sanity'
 
@@ -28,5 +30,33 @@ export function useChapters() {
     queryKey: ['chapters'],
     queryFn: () => sanity.fetch<Chapter[]>(chaptersQuery),
     staleTime: 5 * 60 * 1000,
+  })
+}
+
+/** Practice tapes, ordered by tape number. */
+export function useRecordings() {
+  return useQuery({
+    queryKey: ['recordings'],
+    queryFn: () => sanity.fetch<Recording[]>(recordingsQuery),
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/** Length of an audio file, read from its metadata only (no full download). Cached forever. */
+export function useAudioDuration(url?: string) {
+  return useQuery({
+    queryKey: ['duration', url],
+    enabled: Boolean(url),
+    staleTime: Infinity,
+    gcTime: Infinity,
+    retry: false,
+    queryFn: () =>
+      new Promise<number>((resolve, reject) => {
+        const audio = new Audio()
+        audio.preload = 'metadata'
+        audio.onloadedmetadata = () => resolve(audio.duration)
+        audio.onerror = () => reject(new Error('Could not read audio length'))
+        audio.src = url!
+      }),
   })
 }

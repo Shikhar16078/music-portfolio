@@ -59,3 +59,22 @@ export type Chapter = {
 export const chaptersQuery = `*[_type == "chapter" && defined(number)] | order(number asc){
   _id, number, title, instrument, body
 }`
+
+export type Recording = {
+  _id: string
+  title: string
+  tapeNumber: number
+  kind: 'original' | 'cover'
+  originalArtist?: string
+  key?: string
+  note?: string
+  recordedOn?: string
+  featured?: boolean
+  cover?: SanityImage
+  audioUrl: string
+}
+
+export const recordingsQuery = `*[_type == "recording" && defined(audio.asset) && defined(tapeNumber)] | order(tapeNumber asc){
+  _id, title, tapeNumber, kind, originalArtist, key, note, recordedOn, featured, cover,
+  "audioUrl": audio.asset->url
+}`
