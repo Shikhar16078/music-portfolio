@@ -3,8 +3,11 @@ import { Footer } from '@/components/site/footer'
 import { Header } from '@/components/site/header'
 import { Hero } from '@/components/site/hero'
 import { Journey } from '@/components/site/journey'
+import { Listen } from '@/components/site/listen'
 import { SECTIONS } from '@/components/site/nav'
+import { PlayerBar } from '@/components/site/player-bar'
 import { Accent, Section } from '@/components/site/section'
+import { usePlayer } from '@/lib/player-context'
 import { useSiteSettings } from '@/lib/queries'
 import { useActiveSection } from '@/lib/use-active-section'
 
@@ -24,6 +27,7 @@ function ComingNext({ label }: { label: string }) {
 export default function App() {
   const active = useActiveSection(SECTION_IDS, 'home')
   const { data } = useSiteSettings()
+  const { current } = usePlayer()
 
   return (
     <>
@@ -50,18 +54,7 @@ export default function App() {
         >
           <ComingNext label="Videos arrive in phase 4" />
         </Section>
-        <Section
-          id="listen"
-          eyebrow="Listen · Audio only"
-          title={
-            <>
-              From the <Accent>practice tapes.</Accent>
-            </>
-          }
-          intro={data?.listenIntro}
-        >
-          <ComingNext label="Player arrives in phase 3" />
-        </Section>
+        <Listen />
         <Section
           id="connect"
           eyebrow="Connect"
@@ -76,7 +69,11 @@ export default function App() {
           <ComingNext label="Connect cards arrive in phase 5" />
         </Section>
       </main>
-      <Footer />
+      {/* Room for the docked player so it never covers the footer */}
+      <div className={current ? 'pb-24 md:pb-32' : undefined}>
+        <Footer />
+      </div>
+      <PlayerBar />
     </>
   )
 }
