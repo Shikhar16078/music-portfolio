@@ -10,8 +10,27 @@ export const siteSettings = defineType({
   groups: [
     {name: 'text', title: 'Page text', default: true},
     {name: 'links', title: 'Links'},
+    {name: 'photos', title: 'Hero photos'},
   ],
   fields: [
+    defineField({
+      name: 'heroPhotoDusk',
+      title: 'Hero photo · Dusk (dark theme)',
+      type: 'image',
+      group: 'photos',
+      description:
+        'Optional. Leave empty to use the built-in photo. After uploading, click "Edit" and drag the circle onto the part that matters (e.g. the keys); every screen size crops around it.',
+      options: {hotspot: true},
+    }),
+    defineField({
+      name: 'heroPhotoDaylight',
+      title: 'Hero photo · Daylight (light theme)',
+      type: 'image',
+      group: 'photos',
+      description:
+        'Optional. Pick a warm photo without large white areas. Use "Edit" to set the focal point.',
+      options: {hotspot: true},
+    }),
     defineField({
       name: 'heroIntro',
       title: 'Hero intro',
