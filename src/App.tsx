@@ -2,6 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Footer } from '@/components/site/footer'
 import { Header } from '@/components/site/header'
 import { Hero } from '@/components/site/hero'
+import { Journey } from '@/components/site/journey'
 import { SECTIONS } from '@/components/site/nav'
 import { Accent, Section } from '@/components/site/section'
 import { useSiteSettings } from '@/lib/queries'
@@ -35,18 +36,7 @@ export default function App() {
       <Header active={active} />
       <main>
         <Hero />
-        <Section
-          id="journey"
-          eyebrow="The journey"
-          title={
-            <>
-              Learning by ear, <Accent>one song at a time.</Accent>
-            </>
-          }
-          intro={data?.journeyIntro}
-        >
-          <ComingNext label="Chapters arrive in phase 2" />
-        </Section>
+        <Journey />
         <Section
           id="videos"
           eyebrow="Videos · On YouTube"
