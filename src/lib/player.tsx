@@ -42,6 +42,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [shuffle, setShuffle] = useState(false)
   const [repeat, setRepeat] = useState<RepeatMode>('off')
   const [expanded, setExpanded] = useState(false)
+  const [hidden, setHidden] = useState(false)
 
   const getAudio = useCallback(() => {
     if (!audioRef.current) {
@@ -61,6 +62,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     (track: Recording) => {
       const audio = getAudio()
       setCurrentId(track._id)
+      setHidden(false)
       setError(false)
       setTime(0)
       setDuration(0)
@@ -277,6 +279,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     shuffle,
     repeat,
     expanded,
+    hidden,
     playTrack,
     shufflePlay,
     toggle,
@@ -299,6 +302,20 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       if (current) load(current)
     },
     setExpanded,
+    setHidden,
+    close: () => {
+      const audio = getAudio()
+      audio.pause()
+      audio.removeAttribute('src')
+      audio.load()
+      setCurrentId(undefined)
+      setExpanded(false)
+      setHidden(false)
+      setError(false)
+      setTime(0)
+      setDuration(0)
+      if ('mediaSession' in navigator) navigator.mediaSession.metadata = null
+    },
     getAnalyser,
   }
 

@@ -18,6 +18,8 @@ export type Player = {
   shuffle: boolean
   repeat: RepeatMode
   expanded: boolean
+  /** Player minimised to a small floating button (music keeps playing). */
+  hidden: boolean
   /** Plays a tape (or toggles it if it's already the current one). `queue` becomes the play list. */
   playTrack: (track: Recording, queue?: Recording[]) => void
   shufflePlay: (queue: Recording[]) => void
@@ -32,6 +34,9 @@ export type Player = {
   cycleRepeat: () => void
   retry: () => void
   setExpanded: (open: boolean) => void
+  setHidden: (hidden: boolean) => void
+  /** Stops the music and removes the player. */
+  close: () => void
   /** Web Audio analyser for the live visualizer, created on first use. */
   getAnalyser: () => AnalyserNode | null
 }
