@@ -26,14 +26,14 @@ export function ThemePicker({ compact = false }: { compact?: boolean }) {
   const current = THEMES.find((t) => t.id === theme) ?? THEMES[0]
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
           aria-label={`Theme: ${current.label}. Change theme`}
           className={cn(
             'h-10 rounded-full border-border-strong bg-transparent',
-            compact ? 'w-10 px-0' : 'min-w-36 justify-between gap-3 px-4',
+            compact ? 'w-10 px-0' : 'w-36 justify-between gap-3 px-4',
           )}
         >
           <Swatch colors={current.swatch} />

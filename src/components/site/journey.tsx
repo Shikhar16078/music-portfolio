@@ -1,4 +1,4 @@
-import { screenSection } from '@/lib/layout'
+import { desktopMediaQuery, screenSection } from '@/lib/layout'
 import { useState } from 'react'
 import { ArrowDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { motion } from 'motion/react'
@@ -92,19 +92,19 @@ function JourneyTabs({ chapters }: { chapters: Chapter[] }) {
   const [current, setCurrent] = useState(chapters[0]._id)
   const index = chapters.findIndex((c) => c._id === current)
   const go = (i: number) => setCurrent(chapters[i]._id)
-  const desktop = useMediaQuery('(min-width: 1024px)')
+  const desktop = useMediaQuery(desktopMediaQuery)
 
   return (
     <Tabs
       value={current}
       onValueChange={setCurrent}
       orientation={desktop ? 'vertical' : 'horizontal'}
-      className="grid gap-8 lg:grid-cols-[520px_1fr] lg:gap-12"
+      className="grid gap-8 lg:grid-cols-[min(520px,42%)_minmax(0,1fr)] lg:gap-12"
     >
       <div className="flex flex-col gap-8 lg:gap-6">
         <JourneyHeading />
         <motion.div variants={rise}>
-          <TabsList className="h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0 lg:flex-col lg:items-stretch lg:rounded-3xl lg:border lg:border-border lg:bg-surface lg:p-2">
+          <TabsList className="journey-chapter-list h-auto w-full flex-wrap justify-start gap-2 bg-transparent p-0 lg:flex-col lg:items-stretch lg:rounded-3xl lg:border lg:border-border lg:bg-surface lg:p-2">
             {chapters.map((c) => (
               <TabsTrigger
                 key={c._id}
@@ -138,7 +138,7 @@ function JourneyTabs({ chapters }: { chapters: Chapter[] }) {
             <motion.article
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative flex flex-1 flex-col justify-between gap-8 overflow-hidden rounded-3xl border border-border bg-surface p-8 md:p-10 lg:p-12"
+              className="journey-chapter relative flex flex-1 flex-col justify-between gap-8 overflow-hidden rounded-3xl border border-border bg-surface p-8 md:p-10 lg:p-12"
             >
               <div
                 aria-hidden
@@ -150,12 +150,12 @@ function JourneyTabs({ chapters }: { chapters: Chapter[] }) {
                   {lead}
                   <Accent>{accent}</Accent>
                 </h3>
-                <ScrollArea className="h-56 pr-4 lg:h-64">
+                <ScrollArea className="journey-chapter-scroll h-56 pr-4 lg:h-64">
                   <ChapterBody chapter={c} />
                 </ScrollArea>
               </div>
-              <div className="relative flex items-center justify-between border-t border-border pt-6">
-                <span className="font-mono text-xs tracking-wide text-fg-subtle">
+              <div className="relative flex items-center justify-between gap-3 border-t border-border pt-6">
+                <span className="shrink-0 font-mono text-xs tracking-wide whitespace-nowrap text-fg-subtle">
                   {pad(i + 1)} / {pad(chapters.length)}
                 </span>
                 <div className="flex gap-2">
@@ -230,7 +230,7 @@ export function Journey() {
   const { data: chapters, isPending, isError } = useChapters()
 
   return (
-    <section id="journey" className={screenSection}>
+    <section id="journey" className={cn(screenSection, 'journey-section')}>
       <motion.div
         // Remount when the chapters arrive so their entrance animation runs too
         key={isPending ? 'loading' : 'ready'}

@@ -72,7 +72,7 @@ export function Footer({ className }: { className?: string }) {
             </nav>
           </div>
         </div>
-        <div className="flex flex-col items-start gap-4 border-t border-border px-6 pt-6 md:flex-row md:items-center md:justify-between md:border-0 md:p-0">
+        <div className="flex items-center justify-between gap-2 border-t border-border pt-6 md:border-0 md:p-0">
           <p className={label}>
             ©2026 Shikhar Kumar
             <span className="md:hidden">
@@ -81,7 +81,7 @@ export function Footer({ className }: { className?: string }) {
             <span className="hidden md:inline"> · </span>
             All rights reserved
           </p>
-          <Button asChild variant="secondary" className="h-12 rounded-full px-5 lg:h-10">
+          <Button asChild variant="secondary" className="h-12 rounded-full px-3 md:px-5 lg:h-10">
             <a href="#home">
               <ArrowUpIcon className="text-accent" />
               Back to top

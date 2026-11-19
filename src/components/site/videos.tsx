@@ -10,9 +10,14 @@ import { screenSection } from '@/lib/layout'
 import { rise, stagger } from '@/lib/motion'
 import { useSiteSettings } from '@/lib/queries'
 import { cn } from '@/lib/utils'
+import { useMediaQuery } from '@/lib/use-media-query'
 import { useVideos, type Video } from '@/lib/videos'
 
 const HOME_COUNT = 3
+const TABLET_HOME_COUNT = 4
+const tabletGrid = 'md:max-lg:flex md:max-lg:flex-wrap md:max-lg:justify-center md:max-lg:gap-6'
+
+const tabletCardWidth = 'md:max-lg:w-[calc(50%-12px)]'
 const label = 'font-mono text-xs tracking-wide uppercase'
 
 /** YouTube's play-button mark, drawn in the current colour (icon only, no brand colours). */
@@ -48,11 +53,22 @@ function ShowMoreButton({ expanded, onToggle }: { expanded: boolean; onToggle: (
   )
 }
 
-/** Tablet + desktop: 3-up grid (tablet: first card full width), extra cards revealed in place. */
-function VideoGrid({ videos, expanded }: { videos: Video[]; expanded: boolean }) {
-  const shown = expanded ? videos : videos.slice(0, HOME_COUNT)
+/** Tablet: two equal cards per row. Desktop: three equal columns. */
+function VideoGrid({
+  videos,
+  expanded,
+  homeCount,
+}: {
+  videos: Video[]
+  expanded: boolean
+  homeCount: number
+}) {
+  const shown = expanded ? videos : videos.slice(0, homeCount)
   return (
-    <motion.ul layout className="hidden gap-x-8 gap-y-12 md:grid md:grid-cols-2 lg:grid-cols-3">
+    <motion.ul
+      layout
+      className={cn('videos-grid hidden gap-x-8 gap-y-12 lg:grid lg:grid-cols-3', tabletGrid)}
+    >
       <AnimatePresence initial={false}>
         {shown.map((v, i) => (
           <motion.li
@@ -62,12 +78,12 @@ function VideoGrid({ videos, expanded }: { videos: Video[]; expanded: boolean })
             animate={{
               opacity: 1,
               y: 0,
-              transition: { delay: i >= HOME_COUNT ? (i - HOME_COUNT) * 0.06 : 0 },
+              transition: { delay: i >= homeCount ? (i - homeCount) * 0.06 : 0 },
             }}
             exit={{ opacity: 0, transition: { duration: 0.15 } }}
-            className={cn(i === 0 && 'md:col-span-2 lg:col-span-1')}
+            className={tabletCardWidth}
           >
-            <VideoCard video={v} featured={i === 0} />
+            <VideoCard video={v} />
           </motion.li>
         ))}
       </AnimatePresence>
@@ -150,20 +166,16 @@ function VideoCarousel({
   )
 }
 
-function VideosSkeleton() {
+function VideosSkeleton({ count }: { count: number }) {
   return (
-    <div aria-label="Loading videos" className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: HOME_COUNT }, (_, i) => (
+    <div aria-label="Loading videos" className={cn('grid gap-8 lg:grid-cols-3', tabletGrid)}>
+      {Array.from({ length: count }, (_, i) => (
         <div
           key={i}
-          className={cn(
-            'flex flex-col gap-4',
-            i > 0 && 'hidden md:flex',
-            i === 0 && 'md:col-span-2 lg:col-span-1',
-          )}
+          className={cn('flex min-w-0 flex-col gap-4', tabletCardWidth, i > 0 && 'max-md:hidden')}
         >
           <Skeleton className="aspect-video w-full rounded-lg bg-surface-raised" />
-          <Skeleton className="h-3 w-40 bg-surface-raised" />
+          <Skeleton className="h-3 w-1/2 bg-surface-raised" />
           <Skeleton className="h-6 w-3/4 bg-surface-raised" />
         </div>
       ))}
@@ -195,7 +207,9 @@ export function Videos() {
   const { data: settings } = useSiteSettings()
   const [expanded, setExpanded] = useState(false)
   const videos = data?.featured ?? []
-  const canExpand = videos.length > HOME_COUNT
+  const tablet = useMediaQuery('(48rem <= width < 72rem)')
+  const homeCount = tablet ? TABLET_HOME_COUNT : HOME_COUNT
+  const canExpand = videos.length > homeCount
 
   const toggle = () => {
     // Collapsing: return to the heading so the visitor isn't left below the section
@@ -204,20 +218,26 @@ export function Videos() {
   }
 
   return (
-    <section id="videos" className={cn(screenSection, 'bg-surface')}>
+    <section
+      id="videos"
+      className={cn(
+        screenSection,
+        'videos-section bg-surface md:max-lg:pb-[max(120px,calc(var(--player-space)+24px))]',
+      )}
+    >
       <motion.div
         key={isPending ? 'loading' : 'ready'}
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: '-80px' }}
         variants={stagger}
-        className="site-container flex flex-col gap-8 md:gap-12"
+        className="videos-content site-container flex flex-col gap-8 md:gap-6 lg:gap-12"
       >
         <motion.header
           variants={rise}
-          className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"
+          className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
         >
-          <div className="flex flex-col gap-4 lg:gap-6">
+          <div className="videos-heading flex flex-col gap-4 lg:gap-6">
             <p className={cn(label, 'text-accent')}>Videos · On YouTube</p>
             <SectionTitle>
               Most played <Accent>covers</Accent>
@@ -241,14 +261,14 @@ export function Videos() {
           </div>
         </motion.header>
 
-        <motion.div variants={rise} className="flex flex-col gap-12">
+        <motion.div variants={rise} className="videos-body flex flex-col gap-6 lg:gap-12">
           {isPending ? (
-            <VideosSkeleton />
+            <VideosSkeleton count={homeCount} />
           ) : isError || !videos.length ? (
             <VideosFallback channelUrl={settings?.youtubeChannelUrl} />
           ) : (
             <>
-              <VideoGrid videos={videos} expanded={expanded} />
+              <VideoGrid videos={videos} expanded={expanded} homeCount={homeCount} />
               <VideoCarousel
                 videos={videos}
                 expanded={expanded}

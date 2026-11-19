@@ -73,6 +73,7 @@
   --container-content: 1120px;
   --container-wide: 1280px;
   --container-ultra: 1600px;
+  --breakpoint-lg: 72rem; /* keep portrait tablets on the tablet layout */
   --breakpoint-2xl: 160rem; /* 2560px: ultra-wide */
 
   /* Motion — mirrors src/lib/motion.ts */
@@ -295,7 +296,7 @@
     --player-space: 96px; /* tablet dock 80 + 16 gap */
   }
 }
-@media (width >= 64rem) {
+@media (width >= 72rem) {
   :root[data-player='docked'] {
     --player-space: 88px; /* desktop docked bar 72 + 16 gap */
   }
@@ -357,7 +358,7 @@
   }
 }
 
-@media (width >= 64rem) {
+@media (width >= 72rem) {
   :root {
     --site-gutter: 96px;
   }
@@ -418,7 +419,7 @@
   }
 }
 
-@media (width >= 64rem) {
+@media (width >= 72rem) {
   .site-hero {
     --hero-top: clamp(104px, 16.889svh, 152px);
   }
@@ -464,6 +465,14 @@
   }
 }
 
+/* A landscape tablet can use desktop columns while its browser chrome still changes height. */
+@media (width >= 48rem) and (any-pointer: coarse) {
+  .site-hero,
+  .site-section {
+    min-height: 100dvh;
+  }
+}
+
 .video-thumbnail {
   background: radial-gradient(
     ellipse 125% 115% at 28% 8%,
@@ -477,7 +486,7 @@
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
-@media (width >= 64rem) {
+@media (width >= 72rem) {
   .player-dock {
     background-color: color-mix(in srgb, var(--surface) 86%, transparent);
   }
@@ -485,5 +494,50 @@
   [data-theme='daylight'] .player-dock {
     background-color: color-mix(in srgb, var(--surface) 88%, transparent);
     border-color: color-mix(in srgb, var(--fg) 10%, transparent);
+  }
+}
+
+.player-mini {
+  background-color: color-mix(in srgb, var(--surface-raised) 90%, transparent);
+}
+
+[data-theme='daylight'] .player-mini {
+  background-color: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+
+@media (width >= 72rem) and (height < 820px) {
+  .videos-section,
+  .journey-section {
+    min-height: 100svh;
+    padding-bottom: max(32px, calc(var(--player-space) + 16px));
+  }
+
+  .videos-content,
+  .videos-body {
+    gap: 24px;
+  }
+
+  .videos-heading {
+    gap: 16px;
+  }
+
+  .videos-grid {
+    width: 100%;
+    /* Three 16:9 thumbnails share the height left after the heading, captions, and dock. */
+    max-width: max(600px, calc((100svh - 450px - var(--player-space)) * 16 / 3 + 64px));
+    margin-inline: auto;
+  }
+
+  .journey-chapter-list {
+    row-gap: 4px;
+  }
+
+  .journey-chapter {
+    padding: 32px;
+    gap: 24px;
+  }
+
+  .journey-chapter-scroll {
+    height: clamp(120px, calc(100svh - 440px - var(--player-space)), 256px);
   }
 }

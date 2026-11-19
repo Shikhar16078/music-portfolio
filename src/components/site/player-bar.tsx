@@ -31,7 +31,7 @@ import { cn } from '@/lib/utils'
 
 const label = 'font-mono text-xs tracking-wide uppercase'
 const iconButton =
-  'size-12 rounded-full text-fg-muted hover:bg-surface-raised hover:text-fg md:size-10 [&_svg]:size-5'
+  'size-12 rounded-full text-fg-muted hover:bg-surface-raised hover:text-fg lg:size-10 [&_svg]:size-5'
 
 /** Shared slider look: thin rail and theme foreground thumb. */
 const sliderLook = cn(
@@ -50,7 +50,7 @@ function PlayPauseButton({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
       className={cn(
         'shrink-0 rounded-full',
         size === 'sm' && 'size-12 [&_svg]:size-4',
-        size === 'md' && 'size-12 [&_svg]:size-5',
+        size === 'md' && 'size-12 lg:size-10 [&_svg]:size-5',
         size === 'lg' && 'size-18 [&_svg]:size-6',
       )}
     >
@@ -73,9 +73,9 @@ function Progress({ className, showTimes = true }: { className?: string; showTim
   const pct = (v: number) => (duration ? `${Math.min(100, (v / duration) * 100)}%` : '0%')
 
   return (
-    <div className={cn('flex items-center gap-4', className)}>
+    <div className={cn('flex items-center gap-4 md:max-lg:gap-2', className)}>
       {showTimes && (
-        <span className="w-10 shrink-0 font-mono text-xs text-fg-subtle tabular-nums">
+        <span className="w-10 shrink-0 text-right font-mono text-xs leading-4 text-fg-subtle tabular-nums md:max-lg:w-auto">
           {formatTime(shown)}
         </span>
       )}
@@ -98,12 +98,12 @@ function Progress({ className, showTimes = true }: { className?: string; showTim
           className={cn(
             sliderLook,
             'seek-slider',
-            !showTimes && '**:data-[slot=slider-thumb]:size-4',
+            showTimes ? 'h-4' : '**:data-[slot=slider-thumb]:size-4',
           )}
         />
       </div>
       {showTimes && (
-        <span className="w-10 shrink-0 text-right font-mono text-xs text-fg-subtle tabular-nums">
+        <span className="w-10 shrink-0 font-mono text-xs leading-4 text-fg-subtle tabular-nums md:max-lg:w-auto">
           {formatTime(duration || undefined)}
         </span>
       )}
@@ -163,8 +163,15 @@ function ErrorBanner({ className }: { className?: string }) {
       )}
     >
       <CircleAlertIcon className="size-4 shrink-0 text-destructive" />
-      <span className="flex-1">Couldn’t load this recording.</span>
-      <Button variant="ghost" onClick={retry} className="h-10 rounded-full px-4 text-accent">
+      <span className="flex-1">
+        <span className="md:max-lg:hidden">Couldn’t load this recording.</span>
+        <span className="hidden md:max-lg:inline">Load failed.</span>
+      </span>
+      <Button
+        variant="ghost"
+        onClick={retry}
+        className="h-10 shrink-0 rounded-full px-4 text-accent md:max-lg:px-2"
+      >
         Try again
       </Button>
     </div>
@@ -245,25 +252,27 @@ function Volume() {
   )
 }
 
-/** Desktop + tablet: floating bar docked 24px from the bottom. */
+/** Desktop + tablet: floating bar docked 16px from the bottom. */
 function DockedBar() {
-  const { current, error, setExpanded } = usePlayer()
+  const { current, errorNotice, setExpanded } = usePlayer()
   if (!current) return null
   return (
-    <div className="player-dock grid h-20 grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] items-center gap-4 rounded-3xl border border-fg/8 bg-surface-raised px-4 shadow-overlay backdrop-blur-xl lg:h-18 lg:grid-cols-[min(320px,27%)_minmax(0,1fr)_auto] lg:gap-8">
+    <div className="player-dock grid h-20 grid-cols-[min(248px,calc(100%-448px))_minmax(0,1fr)_auto] items-center gap-4 rounded-3xl border border-fg/8 bg-surface-raised px-4 shadow-overlay backdrop-blur-xl lg:h-18 lg:grid-cols-[min(320px,28%)_minmax(0,1fr)_auto] lg:gap-8">
       <div className="flex min-w-0 items-center gap-4">
-        <TapeArt recording={current} className="lg:size-12 lg:px-2 lg:py-3.5" />
-        <div className="flex min-w-0 flex-col gap-1">
-          <p className="truncate font-medium">{trackTitle(current)}</p>
-          <p className="truncate text-sm text-fg-muted">
+        <TapeArt recording={current} className="size-12 px-2 py-3.5" />
+        <div className="flex min-w-0 flex-col">
+          <p className="truncate text-sm leading-6 font-medium lg:text-base">
+            {trackTitle(current)}
+          </p>
+          <p className="truncate text-xs leading-4 text-fg-muted lg:text-sm lg:leading-6">
             {[tapeLabel(current), longKey(current.key)].filter(Boolean).join(' · ')}
           </p>
         </div>
       </div>
-      {error ? (
-        <ErrorBanner />
+      {errorNotice ? (
+        <ErrorBanner className="md:max-lg:gap-1 md:max-lg:px-1.5" />
       ) : (
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex min-w-0 flex-col items-center gap-1 lg:gap-0">
           <Transport />
           <Progress className="w-full" />
         </div>
@@ -353,21 +362,25 @@ function EqGlyph({ playing }: { playing: boolean }) {
 
 /** Phone: compact bar. Tapping the title opens the full-screen player. */
 function MiniPlayer() {
-  const { current, time, duration, next, error, setExpanded } = usePlayer()
+  const { current, time, duration, next, errorNotice, setExpanded } = usePlayer()
   if (!current) return null
   return (
-    <div className="relative flex h-16 items-center gap-2 overflow-hidden rounded-2xl border border-border bg-surface-raised/95 pr-2 shadow-overlay backdrop-blur-xl">
+    <div className="player-mini relative flex h-16 items-center gap-2 overflow-hidden rounded-2xl px-2 pb-0.5 shadow-overlay backdrop-blur-xl">
       <button
         type="button"
         onClick={() => setExpanded(true)}
         aria-label={`Open player: ${trackTitle(current)}`}
-        className="flex min-w-0 flex-1 items-center gap-3 self-stretch pl-2 text-left"
+        className="flex min-w-0 flex-1 items-center gap-2 self-stretch text-left"
       >
         <TapeArt recording={current} className="size-12 px-2 py-3.5" />
         <span className="flex min-w-0 flex-col">
-          <span className="truncate text-sm font-medium">{trackTitle(current)}</span>
-          <span className={cn('truncate text-xs', error ? 'text-destructive' : 'text-fg-muted')}>
-            {error ? 'Couldn’t load · tap to retry' : `${tapeLabel(current)} · ${formatTime(time)}`}
+          <span className="truncate text-sm leading-6 font-medium">{trackTitle(current)}</span>
+          <span
+            className={cn('truncate text-xs', errorNotice ? 'text-destructive' : 'text-fg-muted')}
+          >
+            {errorNotice
+              ? 'Couldn’t load this recording'
+              : `${tapeLabel(current)} · ${formatTime(time)}`}
           </span>
         </span>
       </button>
@@ -387,7 +400,7 @@ function MiniPlayer() {
 
 /** Full-screen player with the live visualizer (phone sheet; also opened from the desktop bar). */
 function ExpandedPlayer() {
-  const { current, expanded, setExpanded, error } = usePlayer()
+  const { current, expanded, setExpanded, errorNotice } = usePlayer()
   return (
     <Sheet open={expanded && Boolean(current)} onOpenChange={setExpanded}>
       <SheetContent
@@ -441,7 +454,7 @@ function ExpandedPlayer() {
               </p>
             </div>
 
-            {error ? (
+            {errorNotice ? (
               <ErrorBanner />
             ) : (
               <div className="flex flex-col gap-2">

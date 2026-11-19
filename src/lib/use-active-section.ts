@@ -5,19 +5,43 @@ export function useActiveSection<T extends string>(ids: readonly T[], initial: T
   const [active, setActive] = useState<T>(initial)
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.find((e) => e.isIntersecting)
-        if (visible) setActive(visible.target.id as T)
-      },
-      // A thin band across the middle of the screen decides the active section
-      { rootMargin: '-45% 0px -55% 0px' },
-    )
-    ids.forEach((id) => {
-      const el = document.getElementById(id)
-      if (el) observer.observe(el)
+    const sections = ids.flatMap((id) => {
+      const element = document.getElementById(id)
+      return element ? [{ id, element }] : []
     })
-    return () => observer.disconnect()
+    const viewport = window.visualViewport
+    let frame = 0
+
+    function update() {
+      frame = 0
+      const midpoint = (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight) / 2
+      const section = sections.find(({ element }) => {
+        const { top, bottom } = element.getBoundingClientRect()
+        return top <= midpoint && midpoint < bottom
+      })
+      if (section) setActive(section.id)
+    }
+
+    function scheduleUpdate() {
+      if (!frame) frame = window.requestAnimationFrame(update)
+    }
+
+    const observer = new ResizeObserver(scheduleUpdate)
+    sections.forEach(({ element }) => observer.observe(element))
+    window.addEventListener('scroll', scheduleUpdate, { passive: true })
+    window.addEventListener('resize', scheduleUpdate)
+    viewport?.addEventListener('resize', scheduleUpdate)
+    viewport?.addEventListener('scroll', scheduleUpdate)
+    update()
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('scroll', scheduleUpdate)
+      window.removeEventListener('resize', scheduleUpdate)
+      viewport?.removeEventListener('resize', scheduleUpdate)
+      viewport?.removeEventListener('scroll', scheduleUpdate)
+      window.cancelAnimationFrame(frame)
+    }
   }, [ids])
 
   return active

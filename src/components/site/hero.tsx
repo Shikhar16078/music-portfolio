@@ -102,7 +102,7 @@ export function Hero() {
             variants={rise}
             className="font-display text-[clamp(2.5rem,11.3vw,3.5rem)] leading-none tracking-[-0.02em] md:max-w-150 md:text-[80px] md:tracking-display lg:text-[88px] 2xl:max-w-[960px] 2xl:text-[144px]"
           >
-            Every song needs a <em className="block text-accent">piano version.</em>
+            Every song deserves a <em className="text-accent">piano version.</em>
           </motion.h1>
           <motion.div variants={rise} className="max-w-[560px] 2xl:max-w-[896px]">
             {isPending ? (

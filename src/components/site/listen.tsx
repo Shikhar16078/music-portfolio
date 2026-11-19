@@ -375,7 +375,7 @@ export function Listen() {
           ) : isError || !recordings?.length || !featured ? (
             <QuietTapes />
           ) : (
-            <div className="grid gap-6 lg:grid-cols-[352px_1fr] lg:gap-12">
+            <div className="grid gap-6 lg:grid-cols-[min(352px,32%)_minmax(0,1fr)] lg:gap-12">
               <FeaturedCard recording={featured} queue={recordings} />
               <div className="flex flex-col gap-6">
                 <AnimatePresence mode="wait" initial={false}>
@@ -393,7 +393,14 @@ export function Listen() {
                   </motion.ul>
                 </AnimatePresence>
                 {pageCount > 1 && (
-                  <Pagination page={page} pageCount={pageCount} total={total} onChange={setPage} />
+                  <div className="md:max-lg:-order-1">
+                    <Pagination
+                      page={page}
+                      pageCount={pageCount}
+                      total={total}
+                      onChange={setPage}
+                    />
+                  </div>
                 )}
               </div>
             </div>
