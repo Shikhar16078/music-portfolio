@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon, ShuffleIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Accent } from '@/components/site/section'
+import { Accent, SectionTitle } from '@/components/site/section'
 import { TapeArt, Waveform } from '@/components/site/waveform'
 import { duration as dur, ease, rise, stagger } from '@/lib/motion'
 import { formatTime, kindLabel, longKey, pad2, shortKey, tapeLabel, trackTitle } from '@/lib/format'
@@ -13,7 +13,7 @@ import { useAudioDuration, useRecordings, useSiteSettings } from '@/lib/queries'
 import type { Recording } from '@/lib/sanity'
 import { cn } from '@/lib/utils'
 
-const PER_PAGE = 6
+const PER_PAGE = 5
 const label = 'font-mono text-xs tracking-wide uppercase'
 
 /** Current page, kept in the URL as ?tapes=N so shared links open the same page. */
@@ -78,11 +78,12 @@ function TrackRow({ recording, queue }: { recording: Recording; queue: Recording
         aria-label={`${isPlaying ? 'Pause' : 'Play'} ${title}`}
         aria-current={isCurrent ? 'true' : undefined}
         className={cn(
-          'group grid w-full grid-cols-[56px_1fr_48px] items-center gap-4 border border-transparent border-b-border py-2 text-left transition-colors md:grid-cols-[48px_56px_1fr_96px_56px] md:py-3',
-          'hover:bg-surface focus-visible:rounded-2xl focus-visible:outline-2 focus-visible:outline-accent',
-          isCurrent
-            ? 'rounded-2xl border-accent/35 bg-accent-soft px-3 hover:bg-accent-soft md:bg-surface-raised md:px-4 md:hover:bg-surface-raised'
-            : 'md:px-4',
+          // Every row: same padding (content lines up), same rounded shape on hover and when playing.
+          // The divider is drawn inset and hides on hover / when playing, so rounded corners stay clean.
+          'group relative -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[56px_1fr_48px] items-center gap-4 rounded-2xl border border-transparent px-3 py-2 text-left transition-colors md:mx-0 md:h-20 md:w-full md:grid-cols-[24px_48px_1fr_72px_40px_48px] md:px-4 md:py-0 lg:h-16 lg:grid-cols-[48px_48px_1fr_96px_56px]',
+          'after:absolute after:inset-x-3 after:-bottom-px after:h-px after:bg-border md:after:inset-x-4',
+          'hover:bg-surface hover:after:opacity-0 focus-visible:outline-2 focus-visible:outline-accent',
+          isCurrent && 'border-accent/35 bg-accent-soft after:opacity-0 hover:bg-accent-soft',
         )}
       >
         {/* Tape number → play icon on hover → equalizer while playing */}
@@ -96,7 +97,7 @@ function TrackRow({ recording, queue }: { recording: Recording; queue: Recording
             </>
           )}
         </span>
-        <TapeArt recording={recording} />
+        <TapeArt recording={recording} className="md:size-12 md:px-2 md:py-3.5" />
         <span className="flex min-w-0 flex-col gap-1">
           <span
             className={cn('truncate text-base font-medium', isCurrent ? 'text-accent' : 'text-fg')}
@@ -111,14 +112,14 @@ function TrackRow({ recording, queue }: { recording: Recording; queue: Recording
         <span className={cn('hidden md:block', label, 'text-fg-subtle')}>
           {shortKey(recording.key)}
         </span>
-        <span className="hidden text-right font-mono text-sm text-fg-muted tabular-nums md:block">
+        <span className="hidden font-mono text-xs text-fg-subtle tabular-nums md:block lg:text-right lg:text-sm lg:text-fg-muted">
           {formatTime(length)}
         </span>
-        {/* Phone: visible play button (the whole row is the real button) */}
+        {/* Phone + tablet: visible play button (the whole row is the real button) */}
         <span
           aria-hidden
           className={cn(
-            'flex size-12 items-center justify-center rounded-full md:hidden',
+            'flex size-12 items-center justify-center rounded-full lg:hidden',
             isCurrent ? 'bg-accent text-accent-foreground' : 'border border-border-strong text-fg',
           )}
         >
@@ -129,7 +130,10 @@ function TrackRow({ recording, queue }: { recording: Recording; queue: Recording
   )
 }
 
-/** Big tape card: the tape playing now, or the featured one. Artwork stays dark in every theme. */
+const card =
+  'relative overflow-hidden rounded-3xl border border-border bg-recording-bg text-recording-fg'
+
+/** Big tape card: the tape playing now, or the featured one. */
 function FeaturedCard({ recording, queue }: { recording: Recording; queue: Recording[] }) {
   const player = usePlayer()
   const { data: length } = useAudioDuration(recording.audioUrl)
@@ -146,8 +150,8 @@ function FeaturedCard({ recording, queue }: { recording: Recording; queue: Recor
       onClick={() => player.playTrack(recording, queue)}
       aria-label={`${isPlaying ? 'Pause' : 'Play'} ${title}`}
       className={cn(
-        'shrink-0 rounded-full bg-media-accent text-media-accent-fg shadow-glow hover:bg-media-accent/90',
-        big ? 'size-18 [&_svg]:size-6' : 'size-16 [&_svg]:size-5',
+        'shrink-0 rounded-full bg-accent text-accent-foreground',
+        big ? 'size-14 [&_svg]:size-5' : 'size-16 [&_svg]:size-5',
       )}
     >
       <PlayGlyph active={isPlaying} />
@@ -156,70 +160,62 @@ function FeaturedCard({ recording, queue }: { recording: Recording; queue: Recor
 
   return (
     <div className="flex flex-col gap-6">
-      <article
-        className={cn(
-          'relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-media-fg/10 bg-media-bg p-5 text-media-fg',
-          'md:grid md:grid-cols-[1fr_1.2fr_auto] md:items-center md:gap-8 md:p-6 lg:p-8',
-          'lg:flex lg:aspect-square lg:items-stretch lg:justify-between lg:gap-0',
-        )}
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_55%_at_50%_45%,color-mix(in_srgb,var(--color-media-accent)_16%,transparent),transparent_75%)]"
-        />
-        <div className={cn('relative flex justify-between gap-4 text-media-accent', label)}>
-          <span>
-            SK — {tapeLabel(recording)}
-            <span className="lg:hidden"> · {shortKey(recording.key)}</span>
-          </span>
-          <span className="hidden lg:inline">{longKey(recording.key)?.toUpperCase()}</span>
-        </div>
-
-        {/* Phone + tablet: title and button in a row */}
-        <div className="relative flex items-center justify-between gap-4 md:col-start-1 md:row-start-2 lg:hidden">
+      {/* Phone: label, title + button, slim waveform */}
+      <article className={cn(card, 'flex flex-col gap-4 p-5 md:hidden')}>
+        <p className={cn('relative text-recording-wave', label)}>
+          {tapeLabel(recording)} · {shortKey(recording.key)}
+        </p>
+        <div className="relative flex items-center justify-between gap-4">
           <h3 className="font-heading text-2xl font-medium tracking-h3 text-balance">{title}</h3>
-          <span className="md:hidden">{playButton(false)}</span>
-        </div>
-
-        <div className="relative h-8 text-media-accent md:col-start-2 md:row-span-2 md:h-20 lg:h-40">
-          <Waveform
-            seed={recording._id}
-            bars={36}
-            progress={progress}
-            className="lg:hidden"
-            barClassName="w-0.5 md:w-1"
-          />
-          <Waveform
-            seed={recording._id}
-            bars={40}
-            progress={progress}
-            className="hidden lg:flex"
-            barClassName="w-1.5"
-          />
-        </div>
-
-        <span className="relative hidden md:col-start-3 md:row-span-2 md:block lg:hidden">
           {playButton(false)}
-        </span>
+        </div>
+        <div className="relative h-8 text-recording-wave">
+          <Waveform seed={recording._id} bars={36} progress={progress} />
+        </div>
+      </article>
 
-        {/* Desktop: title bottom-left, big button bottom-right */}
-        <div className="relative hidden items-end justify-between gap-6 lg:flex">
-          <h3 className="min-w-0 font-heading text-2xl font-medium tracking-h3 text-balance break-words">
+      {/* Tablet: artwork square, text, button */}
+      <article className={cn(card, 'hidden items-center gap-6 p-6 md:flex lg:hidden')}>
+        <div className="flex size-44 shrink-0 items-center rounded-lg bg-recording-fg/5 px-6 py-12 text-recording-wave">
+          <Waveform
+            seed={recording._id}
+            bars={20}
+            progress={progress}
+            className="w-full"
+            barClassName="w-[3px]"
+          />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <p className={cn('text-recording-wave', label)}>
+            {[tapeLabel(recording), longKey(recording.key), isCurrent && 'Now playing']
+              .filter(Boolean)
+              .join(' · ')}
+          </p>
+          <h3 className="font-heading text-[32px] leading-10 font-medium tracking-h3">{title}</h3>
+          <p className="text-sm text-fg-muted">
+            {recording.note && <>{recording.note} </>}
+            {meta}
+          </p>
+        </div>
+        {playButton(false)}
+      </article>
+
+      {/* Desktop: square card, title bottom-left, big button bottom-right */}
+      <article className={cn(card, 'hidden aspect-square flex-col justify-between p-8 lg:flex')}>
+        <div className={cn('relative flex justify-between gap-4 text-recording-wave', label)}>
+          <span>SK — {tapeLabel(recording)}</span>
+          <span>{longKey(recording.key)?.toUpperCase()}</span>
+        </div>
+        <div className="relative h-40 text-recording-wave">
+          <Waveform seed={recording._id} bars={40} progress={progress} barClassName="w-1.5" />
+        </div>
+        <div className="relative flex items-end justify-between gap-6">
+          <h3 className="min-w-0 font-heading text-2xl font-medium tracking-display text-balance break-words">
             {title}
           </h3>
           {playButton(true)}
         </div>
       </article>
-
-      <div className="hidden flex-col gap-2 lg:flex">
-        <p className={cn(label, 'text-fg-subtle')}>
-          {isCurrent ? 'Now playing' : 'Featured'} · {tapeLabel(recording)}
-        </p>
-        <p className="text-sm text-fg-muted">
-          {recording.note && <>{recording.note} </>}
-          {meta}
-        </p>
-      </div>
     </div>
   )
 }
@@ -343,26 +339,28 @@ export function Listen() {
         whileInView="show"
         viewport={{ once: true, margin: '-80px' }}
         variants={stagger}
-        className="mx-auto flex max-w-(--container-wide) flex-col gap-10 px-6 md:px-12 lg:px-24 2xl:max-w-(--container-ultra)"
+        className="site-container flex flex-col gap-8 md:gap-10 lg:gap-12"
       >
         <motion.header
           variants={rise}
-          className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
+          className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6"
         >
           <div className="flex flex-col gap-4">
             <p className={cn(label, 'text-accent')}>Listen · Audio only</p>
-            <h2 className="font-heading text-[40px] leading-12 font-medium tracking-h1 md:text-4xl">
+            <SectionTitle>
               From the <Accent>practice tapes.</Accent>
-            </h2>
+            </SectionTitle>
           </div>
-          <div className="flex flex-col items-start gap-6 md:items-end">
+          <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between lg:flex-col lg:items-end lg:justify-start">
             {settings?.listenIntro && (
-              <p className="text-lg text-fg-muted md:text-right">{settings.listenIntro}</p>
+              <p className="text-lg text-fg-muted lg:text-right lg:text-base">
+                {settings.listenIntro}
+              </p>
             )}
             {total > 0 && (
               <Button
                 onClick={() => recordings && player.shufflePlay(recordings)}
-                className="h-12 rounded-full px-6 text-base"
+                className="h-12 rounded-full px-6 text-base lg:h-10 lg:px-5 lg:text-sm"
               >
                 <ShuffleIcon />
                 Shuffle play
@@ -377,7 +375,7 @@ export function Listen() {
           ) : isError || !recordings?.length || !featured ? (
             <QuietTapes />
           ) : (
-            <div className="grid gap-6 lg:grid-cols-[416px_1fr] lg:gap-16">
+            <div className="grid gap-6 lg:grid-cols-[352px_1fr] lg:gap-12">
               <FeaturedCard recording={featured} queue={recordings} />
               <div className="flex flex-col gap-6">
                 <AnimatePresence mode="wait" initial={false}>

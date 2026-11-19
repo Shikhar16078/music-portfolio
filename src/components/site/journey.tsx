@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Accent } from '@/components/site/section'
+import { Accent, SectionTitle } from '@/components/site/section'
 import { rise, stagger } from '@/lib/motion'
 import { useChapters, useSiteSettings } from '@/lib/queries'
 import type { Chapter } from '@/lib/sanity'
@@ -40,7 +40,7 @@ function readMinutes(chapter: Chapter) {
 /** Story text from Sanity. The first paragraph leads; the rest are quieter. */
 function ChapterBody({ chapter }: { chapter: Chapter }) {
   return (
-    <div className="flex flex-col gap-4 text-base text-fg-muted [&>p:first-child]:text-lg [&>p:first-child]:leading-8 [&>p:first-child]:text-fg">
+    <div className="flex flex-col gap-4 text-base text-fg-muted [&>p:first-child]:text-lg [&>p:first-child]:leading-8 [&>p:first-child]:text-fg lg:[&>p:first-child]:text-base lg:[&>p:first-child]:leading-7">
       <PortableText
         value={chapter.body ?? []}
         components={{
@@ -77,10 +77,12 @@ function JourneyHeading() {
   return (
     <motion.div variants={rise} className="flex flex-col gap-4">
       <p className="font-mono text-xs tracking-wide text-accent uppercase">The journey</p>
-      <h2 className="font-heading text-[40px] leading-12 font-medium tracking-h1 md:text-[56px] md:leading-16 lg:text-4xl">
+      <SectionTitle className="lg:max-w-105">
         Learning by ear, <Accent>one song at a time.</Accent>
-      </h2>
-      {data?.journeyIntro && <p className="text-lg text-fg-muted">{data.journeyIntro}</p>}
+      </SectionTitle>
+      {data?.journeyIntro && (
+        <p className="text-lg text-fg-muted lg:text-base">{data.journeyIntro}</p>
+      )}
     </motion.div>
   )
 }
@@ -97,7 +99,7 @@ function JourneyTabs({ chapters }: { chapters: Chapter[] }) {
       value={current}
       onValueChange={setCurrent}
       orientation={desktop ? 'vertical' : 'horizontal'}
-      className="grid gap-8 lg:grid-cols-[520px_1fr] lg:gap-16"
+      className="grid gap-8 lg:grid-cols-[520px_1fr] lg:gap-12"
     >
       <div className="flex flex-col gap-8 lg:gap-6">
         <JourneyHeading />
@@ -110,7 +112,7 @@ function JourneyTabs({ chapters }: { chapters: Chapter[] }) {
                 className={cn(
                   'group h-12 flex-none gap-2 rounded-full border border-border px-5 font-mono text-xs tracking-wide text-fg-subtle uppercase',
                   'data-[state=active]:border-accent data-[state=active]:bg-accent-soft data-[state=active]:text-accent',
-                  'lg:w-full lg:justify-start lg:gap-4 lg:rounded-lg lg:border-0 lg:px-0 lg:pr-4 lg:data-[state=active]:bg-surface-raised',
+                  'lg:h-10 lg:w-full lg:justify-start lg:gap-4 lg:rounded-lg lg:border-0 lg:px-0 lg:pr-4 lg:data-[state=active]:bg-surface-raised',
                 )}
               >
                 <span
@@ -144,11 +146,11 @@ function JourneyTabs({ chapters }: { chapters: Chapter[] }) {
               />
               <div className="relative flex flex-col gap-6">
                 <ChapterMeta chapter={c} />
-                <h3 className="font-heading text-2xl font-medium tracking-h3 lg:text-3xl">
+                <h3 className="font-heading text-2xl font-medium tracking-h3 md:text-[32px] md:leading-10 lg:text-[36px]">
                   {lead}
                   <Accent>{accent}</Accent>
                 </h3>
-                <ScrollArea className="lg:h-64 lg:pr-4">
+                <ScrollArea className="h-56 pr-4 lg:h-64">
                   <ChapterBody chapter={c} />
                 </ScrollArea>
               </div>
@@ -163,12 +165,12 @@ function JourneyTabs({ chapters }: { chapters: Chapter[] }) {
                     aria-label="Previous chapter"
                     disabled={i === 0}
                     onClick={() => go(index - 1)}
-                    className="size-12 rounded-full border-border-strong bg-transparent"
+                    className="size-12 rounded-full border-border-strong bg-transparent lg:size-10"
                   >
                     <ChevronLeftIcon />
                   </Button>
                   {last ? (
-                    <Button asChild className="h-12 rounded-full px-5">
+                    <Button asChild className="h-12 rounded-full px-5 lg:h-10">
                       <a href="#videos">
                         Hear where it led
                         <ArrowDownIcon />
@@ -178,7 +180,7 @@ function JourneyTabs({ chapters }: { chapters: Chapter[] }) {
                     <Button
                       variant="outline"
                       onClick={() => go(index + 1)}
-                      className="h-12 rounded-full border-border-strong bg-transparent px-5"
+                      className="h-12 rounded-full border-border-strong bg-transparent px-5 lg:h-10"
                     >
                       Next chapter
                       <ChevronRightIcon className="text-accent" />
@@ -236,7 +238,7 @@ export function Journey() {
         whileInView="show"
         viewport={{ once: true, margin: '-80px' }}
         variants={stagger}
-        className="mx-auto max-w-(--container-wide) px-6 md:px-12 lg:px-24 2xl:max-w-(--container-ultra)"
+        className="site-container"
       >
         {isPending ? (
           <div className="flex flex-col gap-4">

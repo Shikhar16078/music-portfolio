@@ -45,7 +45,7 @@ export function TapeArt({ recording, className }: { recording: Recording; classN
         src={imageUrl(recording.cover, 160)}
         alt=""
         loading="lazy"
-        className={cn('size-14 shrink-0 rounded-xl object-cover', className)}
+        className={cn('size-14 shrink-0 rounded-md object-cover', className)}
         style={{ objectPosition: hotspotPosition(recording.cover) }}
       />
     )
@@ -54,11 +54,8 @@ export function TapeArt({ recording, className }: { recording: Recording; classN
   return (
     <div
       aria-hidden
-      className={cn('flex size-14 shrink-0 items-center rounded-xl px-2.5 py-4', className)}
-      style={{
-        color: tint,
-        background: `color-mix(in srgb, ${tint} 10%, var(--color-media-bg))`,
-      }}
+      className={cn('flex size-14 shrink-0 items-center rounded-md px-2.5 py-4', className)}
+      style={tint}
     >
       <Waveform seed={recording._id} bars={11} className="w-full" />
     </div>

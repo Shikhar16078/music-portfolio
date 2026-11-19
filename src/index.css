@@ -75,13 +75,6 @@
   --container-ultra: 1600px;
   --breakpoint-2xl: 160rem; /* 2560px: ultra-wide */
 
-  /* On-media colors — for anything drawn ON artwork (covers, video thumbnails).
-     These never change with the theme: artwork stays dark in every theme. */
-  --color-media-fg: #f2e7d5;
-  --color-media-bg: #15100d;
-  --color-media-accent: #e8bc86;
-  --color-media-accent-fg: #21170e;
-
   /* Motion — mirrors src/lib/motion.ts */
   --ease-attack: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-breath: cubic-bezier(0.65, 0, 0.35, 1);
@@ -105,6 +98,16 @@
   --color-rosewood: var(--rosewood);
   --color-piano: var(--piano);
   --color-success: var(--success);
+  --color-glass: var(--glass);
+  --color-glass-edge: var(--glass-edge);
+  --color-media-bg: var(--theater-bg);
+  --color-media-fg: var(--theater-fg);
+  --color-media-accent: var(--theater-accent);
+  --color-recording-bg: var(--recording-bg);
+  --color-recording-fg: var(--recording-fg);
+  --color-recording-wave: var(--recording-wave);
+  --color-video-control: var(--video-control);
+  --color-video-control-fg: var(--video-control-fg);
 
   /* shadcn contract */
   --color-background: var(--bg);
@@ -136,24 +139,46 @@
 :root,
 [data-theme='dusk'] {
   color-scheme: dark;
-  --bg: #15100d;
-  --surface: #1f1814;
-  --surface-raised: #2a211b;
-  --border: #3a2e26;
-  --border-strong: #6b5b4d;
-  --fg: #f2e7d5;
-  --fg-muted: #b9a893;
-  --fg-subtle: #9a8a77;
-  --accent: #e8bc86;
-  --accent-fg: #21170e;
-  --accent-soft: #33271b;
+  --bg: #141110;
+  --surface: #241e1a;
+  --surface-raised: #302722;
+  --border: #493a31;
+  --border-strong: #887364;
+  --fg: #f2e9dd;
+  --fg-muted: #c0b1a2;
+  --fg-subtle: #a69789;
+  --accent: #eab27a;
+  --accent-fg: #20150f;
+  --accent-soft: #3b2b20;
+  --glass: rgb(242 231 213 / 0.08); /* liquid-glass fill (nav pill) */
+  --glass-edge: rgb(242 231 213 / 0.3); /* lit top edge */
   --rosewood: #7e5046;
   --piano: #e9dcc6;
   --success: #8db07a;
   --danger: #e0715c;
 
+  --recording-bg: #1b1512;
+  --recording-fg: #f2e9dd;
+  --recording-wave: #d99a63;
+  --theater-bg: #15110f;
+  --theater-fg: #f2e9dd;
+  --theater-accent: #eab27a;
+  --video-control: #20150f;
+  --video-control-fg: #f2e9dd;
+  --tape-bg-0: #603e29;
+  --tape-bg-1: #5b4738;
+  --tape-bg-2: #563938;
+  --tape-bg-3: #394236;
+  --tape-wave-0: #eaaf7e;
+  --tape-wave-1: #f2e9dd;
+  --tape-wave-2: #d5a69d;
+  --tape-wave-3: #bdc6a4;
+  --video-highlight: #6b4320;
+  --video-tint: #2a1b12;
+  --video-edge: #120d0a;
+
   --elev-raised: 0 8px 24px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(242 231 213 / 0.06);
-  --elev-glow: 0 0 0 1px rgb(232 188 134 / 0.4), 0 16px 48px rgb(232 188 134 / 0.18);
+  --elev-glow: 0 6px 20px color-mix(in srgb, var(--accent) 16%, transparent);
   --elev-overlay: 0 16px 48px rgb(0 0 0 / 0.45);
 
   --radius: 16px; /* shadcn base radius */
@@ -162,25 +187,47 @@
 /* Daylight — light */
 [data-theme='daylight'] {
   color-scheme: light;
-  --bg: #f7f0e4;
-  --surface: #fffaf2;
-  --surface-raised: #efe5d4;
-  --border: #e0d3bf;
-  --border-strong: #8c7b6a;
-  --fg: #1d1613;
-  --fg-muted: #5e4f42;
-  --fg-subtle: #7a6a5a;
-  --accent: #96602a;
-  --accent-fg: #fff8ee;
-  --accent-soft: #f4e4cc;
+  --bg: #f2f3f2;
+  --surface: #f5f5f3;
+  --surface-raised: #e9ebec;
+  --border: #d4d7d9;
+  --border-strong: #777f87;
+  --fg: #212326;
+  --fg-muted: #444a50;
+  --fg-subtle: #5e666e;
+  --accent: #343a40;
+  --accent-fg: #ffffff;
+  --accent-soft: #e2e5e7;
+  --glass: rgb(245 245 243 / 0.72); /* liquid-glass fill (nav pill) */
+  --glass-edge: rgb(255 255 255 / 0.95); /* lit top edge */
   --rosewood: #8a5245;
   --piano: #e9dcc6;
   --success: #466f38;
   --danger: #b5432f;
 
-  --elev-raised: 0 8px 24px rgb(29 22 19 / 0.08);
-  --elev-glow: 0 0 0 1px rgb(150 96 42 / 0.35), 0 16px 48px rgb(150 96 42 / 0.14);
-  --elev-overlay: 0 16px 48px rgb(29 22 19 / 0.16);
+  --recording-bg: #e7eaec;
+  --recording-fg: #212326;
+  --recording-wave: #505b65;
+  --theater-bg: #15171a;
+  --theater-fg: #f3f4f5;
+  --theater-accent: #aebac5;
+  --video-control: #343a40;
+  --video-control-fg: #ffffff;
+  --tape-bg-0: #d5dce1;
+  --tape-bg-1: #e1e2de;
+  --tape-bg-2: #e4dde2;
+  --tape-bg-3: #dae2df;
+  --tape-wave-0: #505b65;
+  --tape-wave-1: #505b65;
+  --tape-wave-2: #62556a;
+  --tape-wave-3: #475d54;
+  --video-highlight: #f1f3f4;
+  --video-tint: #c9d1d8;
+  --video-edge: #b5bec6;
+
+  --elev-raised: 0 8px 24px rgb(33 35 38 / 0.08);
+  --elev-glow: 0 6px 20px color-mix(in srgb, var(--accent) 16%, transparent);
+  --elev-overlay: 0 16px 48px rgb(33 35 38 / 0.16);
 }
 
 /* Moonlight: dark, cool ground with a dimmed honey accent (planned, shown as "soon" in the picker) */
@@ -197,6 +244,8 @@
   --accent: #d8b88c;
   --accent-fg: #14110e;
   --accent-soft: #2a2620;
+  --glass: rgb(236 234 230 / 0.08); /* liquid-glass fill (nav pill) */
+  --glass-edge: rgb(236 234 230 / 0.3); /* lit top edge */
   --rosewood: #7e5046;
   --piano: #e9dcc6;
   --success: #8db07a;
@@ -221,6 +270,8 @@
   --accent: #9a3f1f;
   --accent-fg: #fbf1e1;
   --accent-soft: #f0d6c2;
+  --glass: rgb(245 235 216 / 0.7); /* liquid-glass fill (nav pill) */
+  --glass-edge: rgb(255 250 240 / 0.9); /* lit top edge */
   --rosewood: #8a5245;
   --piano: #e9dcc6;
   --success: #3f6430;
@@ -229,6 +280,25 @@
   --elev-raised: 0 8px 24px rgb(43 28 16 / 0.1);
   --elev-glow: 0 0 0 1px rgb(154 63 31 / 0.35), 0 16px 48px rgb(154 63 31 / 0.14);
   --elev-overlay: 0 16px 48px rgb(43 28 16 / 0.18);
+}
+
+/* Space the docked player takes at the bottom of the screen. Sections shrink by it while
+   the player shows, so their content never sits behind it. Set via data-player on <html>. */
+:root {
+  --player-space: 0px;
+}
+:root[data-player='docked'] {
+  --player-space: calc(80px + env(safe-area-inset-bottom)); /* 64px mini player + 16px gap */
+}
+@media (width >= 48rem) {
+  :root[data-player='docked'] {
+    --player-space: 96px; /* tablet dock 80 + 16 gap */
+  }
+}
+@media (width >= 64rem) {
+  :root[data-player='docked'] {
+    --player-space: 88px; /* desktop docked bar 72 + 16 gap */
+  }
 }
 
 /* Layering — use z-[var(--z-player)] etc. */
@@ -252,8 +322,6 @@
   }
   body {
     @apply bg-bg text-fg;
-    /* leave room so the docked player never covers the end of the page */
-    padding-bottom: 112px;
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-accent;
@@ -267,5 +335,155 @@
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+}
+
+/* Gutters are outside the shared content measure. */
+@utility site-container {
+  width: 100%;
+  max-width: calc(var(--site-content-max) + 2 * var(--site-gutter));
+  margin-inline: auto;
+  padding-inline: var(--site-gutter);
+}
+
+:root {
+  --site-gutter: 24px;
+  --site-content-max: 1248px;
+}
+
+@media (width >= 48rem) {
+  :root {
+    --site-gutter: 48px;
+  }
+}
+
+@media (width >= 64rem) {
+  :root {
+    --site-gutter: 96px;
+  }
+}
+
+@media (width >= 100rem) {
+  :root {
+    --site-content-max: var(--container-wide);
+  }
+}
+
+@media (width >= 160rem) {
+  :root {
+    --site-content-max: var(--container-ultra);
+  }
+}
+
+.site-hero {
+  --hero-top: 160px;
+  min-height: 100svh;
+  padding-top: var(--hero-top);
+  padding-bottom: max(32px, calc(var(--player-space) + 16px));
+}
+
+[data-theme='daylight'] .site-hero {
+  --hero-top: 146px;
+}
+
+.hero-photo {
+  position: absolute;
+  inset: -48px;
+  filter: blur(6px);
+}
+
+.hero-copy h1 {
+  text-shadow: 0 2px 20px rgb(0 0 0 / 65%);
+}
+
+.hero-copy p {
+  color: #e0d3bf;
+  text-shadow: 0 1px 12px #000;
+}
+
+[data-theme='daylight'] .hero-copy h1,
+[data-theme='daylight'] .hero-copy p {
+  text-shadow: 0 1px 8px rgb(255 255 255 / 90%);
+}
+
+[data-theme='daylight'] .hero-copy p {
+  color: var(--fg-muted);
+}
+
+@media (width >= 48rem) {
+  .site-hero,
+  [data-theme='daylight'] .site-hero {
+    --hero-top: 180px;
+    padding-bottom: max(80px, calc(var(--player-space) + 16px));
+  }
+}
+
+@media (width >= 64rem) {
+  .site-hero {
+    --hero-top: clamp(104px, 16.889svh, 152px);
+  }
+
+  .site-hero,
+  [data-theme='daylight'] .site-hero {
+    padding-bottom: max(120px, calc(var(--player-space) + 32px));
+  }
+
+  [data-theme='daylight'] .site-hero {
+    --hero-top: clamp(104px, 13.889svh, 125px);
+  }
+
+  [data-theme='daylight'] .hero-photo {
+    left: -30%;
+    right: -5%;
+  }
+}
+
+@media (width >= 100rem) {
+  .site-hero {
+    --hero-top: clamp(104px, 22.407svh, 242px);
+  }
+
+  [data-theme='daylight'] .site-hero {
+    --hero-top: clamp(104px, 19.444svh, 210px);
+  }
+
+  [data-theme='daylight'] .hero-photo {
+    left: -17%;
+    right: -5%;
+  }
+}
+
+@media (width >= 160rem) {
+  .site-hero,
+  [data-theme='daylight'] .site-hero {
+    --hero-top: clamp(104px, 19.514svh, 281px);
+  }
+
+  [data-theme='daylight'] .hero-photo {
+    inset: -48px;
+  }
+}
+
+.video-thumbnail {
+  background: radial-gradient(
+    ellipse 125% 115% at 28% 8%,
+    var(--video-highlight),
+    var(--video-tint) 65%,
+    var(--video-edge)
+  );
+}
+
+.seek-slider [data-slot='slider-thumb']:not(:focus-visible) {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+@media (width >= 64rem) {
+  .player-dock {
+    background-color: color-mix(in srgb, var(--surface) 86%, transparent);
+  }
+
+  [data-theme='daylight'] .player-dock {
+    background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+    border-color: color-mix(in srgb, var(--fg) 10%, transparent);
   }
 }

@@ -1,5 +1,6 @@
 import { CirclePlayIcon, MenuIcon, XIcon } from 'lucide-react'
 import { useState } from 'react'
+import { motion } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -12,6 +13,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { ThemeChips, ThemePicker } from '@/components/site/theme-picker'
 import { SECTIONS, subscribeUrl, type SectionId } from '@/components/site/nav'
+import { spring } from '@/lib/motion'
 import { useSiteSettings } from '@/lib/queries'
 import { cn } from '@/lib/utils'
 
@@ -19,7 +21,7 @@ function SubscribeButton({ className }: { className?: string }) {
   const { data } = useSiteSettings()
   const href = subscribeUrl(data?.youtubeChannelUrl)
   return (
-    <Button asChild className={cn('h-12 rounded-full px-5', className)}>
+    <Button asChild className={cn('h-12 rounded-full px-5 md:h-10 md:px-4', className)}>
       <a href={href ?? '#'} target="_blank" rel="noreferrer" aria-disabled={!href}>
         <CirclePlayIcon />
         Subscribe
@@ -28,16 +30,31 @@ function SubscribeButton({ className }: { className?: string }) {
   )
 }
 
+/**
+ * Liquid-glass pill behind the active nav item: translucent, blurred, lit from the top edge.
+ * Shared layoutId so it glides between items as the active section changes.
+ */
+function GlassPill() {
+  return (
+    <motion.span
+      layoutId="nav-glass"
+      transition={spring.key}
+      aria-hidden
+      className="absolute inset-0 rounded-full bg-glass shadow-[inset_0_1px_0_var(--glass-edge),inset_0_-1px_1px_color-mix(in_srgb,var(--bg)_35%,transparent),0_8px_20px_-8px_color-mix(in_srgb,var(--bg)_70%,transparent)] ring-1 ring-fg/10 backdrop-blur-md backdrop-saturate-150"
+    />
+  )
+}
+
 /** Floating pill nav (tablet and up) and top bar + sheet menu (phone). */
 export function Header({ active }: { active: SectionId }) {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 px-4 pt-4 md:px-8 md:pt-6 lg:px-24">
+    <header className="fixed inset-x-0 top-0 z-40 px-6 pt-4 md:px-12 md:pt-6 lg:px-24 lg:pt-4">
       {/* Tablet and up */}
       <nav
         aria-label="Main"
-        className="mx-auto hidden h-18 max-w-(--container-wide) items-center justify-between rounded-full border border-border bg-surface/80 pr-3 pl-6 backdrop-blur-xl md:flex 2xl:max-w-(--container-ultra)"
+        className="mx-auto hidden h-16 max-w-(--site-content-max) items-center justify-between rounded-full border border-border bg-surface/80 px-2 backdrop-blur-xl md:flex lg:h-14"
       >
         <ul className="flex items-center gap-1">
           {SECTIONS.map((s) => (
@@ -45,12 +62,10 @@ export function Header({ active }: { active: SectionId }) {
               <a
                 href={`#${s.id}`}
                 aria-current={active === s.id ? 'true' : undefined}
-                className={cn(
-                  'relative flex h-12 items-center px-3 text-sm text-fg-muted transition-colors hover:text-fg',
-                  'aria-[current]:text-fg aria-[current]:after:absolute aria-[current]:after:bottom-2 aria-[current]:after:left-1/2 aria-[current]:after:size-1 aria-[current]:after:-translate-x-1/2 aria-[current]:after:rounded-full aria-[current]:after:bg-accent',
-                )}
+                className="relative flex h-10 items-center rounded-full px-4 text-sm text-fg-muted transition-colors hover:text-fg aria-[current]:text-fg"
               >
-                {s.label}
+                {active === s.id && <GlassPill />}
+                <span className="relative">{s.label}</span>
               </a>
             </li>
           ))}

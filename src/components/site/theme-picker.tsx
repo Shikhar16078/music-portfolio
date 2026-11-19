@@ -32,8 +32,8 @@ export function ThemePicker({ compact = false }: { compact?: boolean }) {
           variant="outline"
           aria-label={`Theme: ${current.label}. Change theme`}
           className={cn(
-            'h-12 rounded-full border-border-strong bg-transparent',
-            compact ? 'w-12 px-0' : 'min-w-36 justify-between gap-3 px-4',
+            'h-10 rounded-full border-border-strong bg-transparent',
+            compact ? 'w-10 px-0' : 'min-w-36 justify-between gap-3 px-4',
           )}
         >
           <Swatch colors={current.swatch} />

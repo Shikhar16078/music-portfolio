@@ -1,5 +1,6 @@
 /**
- * Every section fills one screen: at least 100svh tall, content centred in the space
- * below the floating nav. Taller content (mostly on phones) simply grows the section.
+ * The Paper desktop sections use a 900 px minimum with a 104 px top inset.
+ * Tablet and phone sections follow content with 80 px and 64 px vertical gutters.
  */
-export const screenSection = 'grid min-h-svh content-center pt-28 pb-16 lg:pt-32 [&>*]:w-full'
+export const screenSection =
+  'py-16 md:py-20 lg:min-h-[900px] lg:pt-[104px] lg:pb-[max(120px,calc(var(--player-space)+2rem))]'

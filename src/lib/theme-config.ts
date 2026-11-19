@@ -8,8 +8,8 @@ export const THEMES: {
   available: boolean
   swatch: [string, string]
 }[] = [
-  { id: 'dusk', label: 'Dusk', available: true, swatch: ['#15100D', '#E8BC86'] },
-  { id: 'daylight', label: 'Daylight', available: true, swatch: ['#F7F0E4', '#96602A'] },
+  { id: 'dusk', label: 'Dusk', available: true, swatch: ['#141110', '#EAB27A'] },
+  { id: 'daylight', label: 'Daylight', available: true, swatch: ['#F2F3F2', '#343A40'] },
   { id: 'moonlight', label: 'Moonlight', available: false, swatch: ['#0F1218', '#D8B88C'] },
   { id: 'sepia', label: 'Sepia', available: false, swatch: ['#EAD9BC', '#9A3F1F'] },
 ]

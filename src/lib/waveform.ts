@@ -21,14 +21,11 @@ export function wavePeaks(seed: string, count: number) {
   })
 }
 
-/** Artwork tints, all drawn from the media palette so they read on dark art in every theme. */
-const TINTS = [
-  'var(--color-media-accent)',
-  'var(--color-media-fg)',
-  'color-mix(in srgb, var(--rosewood) 55%, var(--color-media-fg))',
-  'color-mix(in srgb, var(--success) 60%, var(--color-media-fg))',
-]
-
+/** Stable tint assignment. Each theme defines its own waveform and background colors. */
 export function tintFor(seed: string) {
-  return TINTS[Math.floor(seededRandom(seed)() * TINTS.length)]
+  const index = Math.floor(seededRandom(seed)() * 4)
+  return {
+    color: `var(--tape-wave-${index})`,
+    background: `var(--tape-bg-${index})`,
+  }
 }

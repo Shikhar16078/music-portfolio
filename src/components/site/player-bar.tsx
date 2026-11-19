@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import {
   ChevronDownIcon,
@@ -6,6 +6,7 @@ import {
   ListMusicIcon,
   LoaderCircleIcon,
   Maximize2Icon,
+  MinimizeIcon,
   PauseIcon,
   PlayIcon,
   Repeat1Icon,
@@ -15,6 +16,7 @@ import {
   SkipForwardIcon,
   Volume2Icon,
   VolumeXIcon,
+  XIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -31,12 +33,12 @@ const label = 'font-mono text-xs tracking-wide uppercase'
 const iconButton =
   'size-12 rounded-full text-fg-muted hover:bg-surface-raised hover:text-fg md:size-10 [&_svg]:size-5'
 
-/** Shared slider look: thin rail, accent fill, cream thumb. */
+/** Shared slider look: thin rail and theme foreground thumb. */
 const sliderLook = cn(
   'relative h-6 cursor-pointer',
   '**:data-[slot=slider-track]:h-1 **:data-[slot=slider-track]:bg-transparent',
   '**:data-[slot=slider-range]:bg-accent',
-  '**:data-[slot=slider-thumb]:size-4 **:data-[slot=slider-thumb]:border-0 **:data-[slot=slider-thumb]:bg-piano **:data-[slot=slider-thumb]:shadow-raised',
+  '**:data-[slot=slider-thumb]:size-3 **:data-[slot=slider-thumb]:border-0 **:data-[slot=slider-thumb]:bg-fg',
 )
 
 function PlayPauseButton({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
@@ -49,7 +51,7 @@ function PlayPauseButton({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
         'shrink-0 rounded-full',
         size === 'sm' && 'size-12 [&_svg]:size-4',
         size === 'md' && 'size-12 [&_svg]:size-5',
-        size === 'lg' && 'size-18 shadow-glow [&_svg]:size-6',
+        size === 'lg' && 'size-18 [&_svg]:size-6',
       )}
     >
       {buffering ? (
@@ -93,7 +95,11 @@ function Progress({ className, showTimes = true }: { className?: string; showTim
             seek(v)
             setScrub(undefined)
           }}
-          className={sliderLook}
+          className={cn(
+            sliderLook,
+            'seek-slider',
+            !showTimes && '**:data-[slot=slider-thumb]:size-4',
+          )}
         />
       </div>
       {showTimes && (
@@ -116,7 +122,7 @@ function Transport({ size = 'md' }: { size?: 'md' | 'lg' }) {
         aria-label={shuffle ? 'Shuffle on' : 'Shuffle off'}
         aria-pressed={shuffle}
         onClick={toggleShuffle}
-        className={cn(iconButton, shuffle && on)}
+        className={cn(iconButton, shuffle && on, size === 'md' && 'hidden lg:inline-flex')}
       >
         <ShuffleIcon />
       </Button>
@@ -138,7 +144,7 @@ function Transport({ size = 'md' }: { size?: 'md' | 'lg' }) {
         size="icon"
         aria-label={`Repeat: ${repeat === 'off' ? 'off' : repeat === 'all' ? 'all tapes' : 'this tape'}`}
         onClick={cycleRepeat}
-        className={cn(iconButton, repeat !== 'off' && on)}
+        className={cn(iconButton, repeat !== 'off' && on, size === 'md' && 'hidden lg:inline-flex')}
       >
         {repeat === 'one' ? <Repeat1Icon /> : <RepeatIcon />}
       </Button>
@@ -192,7 +198,7 @@ function QueueButton() {
                     onClick={() => playTrack(r)}
                     className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-surface focus-visible:outline-2 focus-visible:outline-accent"
                   >
-                    <TapeArt recording={r} className="size-10 rounded-lg px-1.5 py-2.5" />
+                    <TapeArt recording={r} className="size-10 px-1.5 py-2.5" />
                     <span className="flex min-w-0 flex-col">
                       <span className="truncate text-sm font-medium">{trackTitle(r)}</span>
                       <span className="text-xs text-fg-muted">{tapeLabel(r)}</span>
@@ -213,7 +219,7 @@ function QueueButton() {
 function Volume() {
   const { volume, setVolume, toggleMute } = usePlayer()
   return (
-    <div className="hidden items-center gap-2 lg:flex">
+    <div className="flex items-center gap-2">
       <Button
         variant="ghost"
         size="icon"
@@ -230,7 +236,10 @@ function Volume() {
         step={0.05}
         value={[volume]}
         onValueChange={([v]) => setVolume(v)}
-        className={cn(sliderLook, 'w-28 **:data-[slot=slider-track]:bg-border')}
+        className={cn(
+          sliderLook,
+          'hidden w-24 **:data-[slot=slider-range]:bg-fg-muted **:data-[slot=slider-track]:bg-border lg:flex',
+        )}
       />
     </div>
   )
@@ -241,9 +250,9 @@ function DockedBar() {
   const { current, error, setExpanded } = usePlayer()
   if (!current) return null
   return (
-    <div className="grid h-22 grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] items-center gap-6 rounded-3xl border border-border bg-surface/90 px-4 shadow-overlay backdrop-blur-xl lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_minmax(0,1fr)]">
+    <div className="player-dock grid h-20 grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] items-center gap-4 rounded-3xl border border-fg/8 bg-surface-raised px-4 shadow-overlay backdrop-blur-xl lg:h-18 lg:grid-cols-[min(320px,27%)_minmax(0,1fr)_auto] lg:gap-8">
       <div className="flex min-w-0 items-center gap-4">
-        <TapeArt recording={current} />
+        <TapeArt recording={current} className="lg:size-12 lg:px-2 lg:py-3.5" />
         <div className="flex min-w-0 flex-col gap-1">
           <p className="truncate font-medium">{trackTitle(current)}</p>
           <p className="truncate text-sm text-fg-muted">
@@ -259,7 +268,7 @@ function DockedBar() {
           <Progress className="w-full" />
         </div>
       )}
-      <div className="flex items-center justify-end gap-1">
+      <div className="flex items-center justify-end gap-1 lg:gap-2">
         <QueueButton />
         <Volume />
         <Button
@@ -271,8 +280,74 @@ function DockedBar() {
         >
           <Maximize2Icon />
         </Button>
+        <HideCloseButtons />
       </div>
     </div>
+  )
+}
+
+/** Hide: shrink to a small floating button, music keeps playing. Close: stop and remove. */
+function HideCloseButtons() {
+  const { setHidden, close } = usePlayer()
+  return (
+    <>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Hide player"
+        onClick={() => setHidden(true)}
+        className={iconButton}
+      >
+        <MinimizeIcon />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Close player and stop music"
+        onClick={close}
+        className={iconButton}
+      >
+        <XIcon />
+      </Button>
+    </>
+  )
+}
+
+/** Hidden state: a small round button with the playing bars; click to bring the player back. */
+function ShowPlayerButton() {
+  const { current, playing, time, duration, setHidden } = usePlayer()
+  if (!current) return null
+  const pct = duration ? (time / duration) * 100 : 0
+  return (
+    <Button
+      onClick={() => setHidden(false)}
+      aria-label={`Show player: ${trackTitle(current)}`}
+      className="relative size-14 rounded-full border border-border bg-surface-raised/95 p-0 text-accent shadow-overlay backdrop-blur-xl hover:bg-surface-raised"
+      style={{
+        backgroundImage: `conic-gradient(var(--accent) ${pct}%, transparent 0)`,
+        backgroundOrigin: 'border-box',
+      }}
+    >
+      <span className="absolute inset-0.5 flex items-center justify-center rounded-full bg-surface-raised">
+        <EqGlyph playing={playing} />
+      </span>
+    </Button>
+  )
+}
+
+function EqGlyph({ playing }: { playing: boolean }) {
+  return (
+    <span aria-hidden className="flex h-5 items-end gap-0.5">
+      {[0.6, 1, 0.45, 0.8].map((h, i) => (
+        <motion.span
+          key={i}
+          className="w-1 origin-bottom rounded-full bg-current"
+          style={{ height: `${h * 100}%` }}
+          animate={playing ? { scaleY: [1, 0.35, 0.9, 0.5, 1] } : { scaleY: 0.45 }}
+          transition={playing ? { duration: 1.1 + i * 0.15, repeat: Infinity } : { duration: 0.24 }}
+        />
+      ))}
+    </span>
   )
 }
 
@@ -326,7 +401,7 @@ function ExpandedPlayer() {
               <Button
                 variant="secondary"
                 size="icon"
-                aria-label="Close player"
+                aria-label="Collapse player"
                 onClick={() => setExpanded(false)}
                 className="size-12 rounded-full"
               >
@@ -338,21 +413,20 @@ function ExpandedPlayer() {
               <SheetDescription className="sr-only">
                 Now playing {trackTitle(current)}
               </SheetDescription>
-              <QueueButton />
+              <div className="flex items-center gap-1">
+                <QueueButton />
+                <PhoneCloseButton />
+              </div>
             </div>
 
-            <div className="relative flex aspect-square flex-col overflow-hidden rounded-3xl border border-media-fg/10 bg-media-bg p-4 text-media-accent">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_50%,color-mix(in_srgb,var(--color-media-accent)_14%,transparent),transparent_75%)]"
-              />
+            <div className="relative flex aspect-square flex-col overflow-hidden rounded-3xl border border-border bg-recording-bg p-4 text-recording-wave">
               <span
                 className={cn(
-                  'relative flex w-fit items-center gap-2 rounded-full bg-media-fg/8 px-3 py-1.5 text-media-fg',
+                  'relative flex w-fit items-center gap-2 rounded-full bg-recording-fg/8 px-3 py-1.5 text-recording-fg',
                   label,
                 )}
               >
-                <span aria-hidden className="size-1.5 rounded-full bg-media-accent" />
+                <span aria-hidden className="size-1.5 rounded-full bg-accent" />
                 Visualizer
               </span>
               <div className="relative flex flex-1 items-center px-4">
@@ -383,6 +457,21 @@ function ExpandedPlayer() {
   )
 }
 
+function PhoneCloseButton() {
+  const { close } = usePlayer()
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label="Close player and stop music"
+      onClick={close}
+      className={iconButton}
+    >
+      <XIcon />
+    </Button>
+  )
+}
+
 function ProgressTimes() {
   const { time, duration } = usePlayer()
   return (
@@ -393,28 +482,57 @@ function ProgressTimes() {
   )
 }
 
-/** Docked player: appears once a tape is played. Layer 50, under the sheet and popovers. */
+/**
+ * Docked player: appears once a tape is played, at the same width as the nav.
+ * Sets data-player on <html> so sections shrink by the player's height (see --player-space).
+ * Layer 50, under the sheet and popovers.
+ */
 export function PlayerBar() {
-  const { current } = usePlayer()
+  const { current, hidden } = usePlayer()
+  const docked = Boolean(current) && !hidden
+
+  useEffect(() => {
+    const root = document.documentElement
+    if (docked) root.dataset.player = 'docked'
+    else delete root.dataset.player
+  }, [docked])
+
   return (
     <>
       <AnimatePresence>
-        {current && (
+        {docked && (
           <motion.div
+            key="docked"
             role="region"
             aria-label="Audio player"
             initial={{ y: 120, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 120, opacity: 0 }}
             transition={spring.settle}
-            className="fixed inset-x-4 bottom-4 z-50 mx-auto md:inset-x-0 md:bottom-6 md:w-[min(100%-48px,1600px)]"
+            className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-50 px-6 md:bottom-4 md:px-12 lg:bottom-4 lg:px-24"
           >
-            <div className="md:hidden">
-              <MiniPlayer />
+            <div className="mx-auto max-w-(--site-content-max)">
+              <div className="md:hidden">
+                <MiniPlayer />
+              </div>
+              <div className="hidden md:block">
+                <DockedBar />
+              </div>
             </div>
-            <div className="hidden md:block">
-              <DockedBar />
-            </div>
+          </motion.div>
+        )}
+        {current && hidden && (
+          <motion.div
+            key="hidden"
+            role="region"
+            aria-label="Audio player (hidden)"
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.6, opacity: 0 }}
+            transition={spring.key}
+            className="fixed right-(--site-gutter) bottom-[calc(1rem+env(safe-area-inset-bottom))] z-50 md:bottom-4 lg:right-[max(var(--site-gutter),calc((100%_-_var(--site-content-max))/2))] lg:bottom-4"
+          >
+            <ShowPlayerButton />
           </motion.div>
         )}
       </AnimatePresence>
