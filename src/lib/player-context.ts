@@ -10,6 +10,7 @@ export type Player = {
   playing: boolean
   buffering: boolean
   error: boolean
+  errorNotice: boolean
   time: number
   duration: number
   /** Seconds buffered ahead of the start. */

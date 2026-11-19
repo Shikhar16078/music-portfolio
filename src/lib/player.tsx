@@ -35,6 +35,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [playing, setPlaying] = useState(false)
   const [buffering, setBuffering] = useState(false)
   const [error, setError] = useState(false)
+  const [errorNotice, setErrorNotice] = useState(false)
   const [time, setTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [buffered, setBuffered] = useState(0)
@@ -115,6 +116,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // Mirror the <audio> element's state into React
   useEffect(() => {
     const audio = getAudio()
+    let noticeTimeout: ReturnType<typeof setTimeout> | undefined
     const on = {
       play: () => {
         setPlaying(true)
@@ -134,13 +136,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       error: () => {
         if (!audio.getAttribute('src')) return
         setError(true)
+        setErrorNotice(true)
+        clearTimeout(noticeTimeout)
+        noticeTimeout = setTimeout(() => setErrorNotice(false), 3000)
         setPlaying(false)
         setBuffering(false)
       },
     }
     const entries = Object.entries(on) as [keyof HTMLMediaElementEventMap, () => void][]
     entries.forEach(([event, fn]) => audio.addEventListener(event, fn))
-    return () => entries.forEach(([event, fn]) => audio.removeEventListener(event, fn))
+    return () => {
+      clearTimeout(noticeTimeout)
+      entries.forEach(([event, fn]) => audio.removeEventListener(event, fn))
+    }
   }, [getAudio])
 
   const playTrack = useCallback(
@@ -184,9 +192,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const toggle = useCallback(() => {
     const audio = getAudio()
     if (!currentId) return
-    if (audio.paused) audio.play().catch(() => {})
+    if (audio.error) {
+      const track = list.find((item) => item._id === currentId)
+      if (track) load(track)
+    } else if (audio.paused) audio.play().catch(() => {})
     else audio.pause()
-  }, [currentId, getAudio])
+  }, [currentId, getAudio, list, load])
 
   const setVolume = useCallback(
     (v: number) => {
@@ -272,6 +283,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     playing,
     buffering,
     error,
+    errorNotice: error && errorNotice,
     time,
     duration,
     buffered,
