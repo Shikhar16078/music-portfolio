@@ -5,7 +5,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { rise, stagger } from '@/lib/motion'
 import { formatTime } from '@/lib/format'
 import { useSiteSettings } from '@/lib/queries'
-import { useTheater } from '@/lib/theater-context'
+import { useInlineVideo } from '@/lib/inline-video-context'
+import { InlineVideo } from '@/components/site/inline-video'
 import { formatAge, isNew, useVideos } from '@/lib/videos'
 import { useTheme } from '@/lib/theme-config'
 import { cn } from '@/lib/utils'
@@ -43,17 +44,24 @@ function HeroPhoto({ daylight }: { daylight: boolean }) {
   )
 }
 
-/** "Latest upload" card under the buttons: the channel's newest video, opens in the theater. */
+/** "Latest upload" card under the buttons: the channel's newest video, plays in the hero. */
 function LatestUpload() {
   const { data } = useVideos()
-  const { open } = useTheater()
+  const { open, close, playing } = useInlineVideo()
   const video = data?.latest
   if (!video) return null
+  if (playing) {
+    return (
+      <motion.div variants={rise} className="w-full max-w-104 lg:max-w-90 2xl:max-w-[576px]">
+        <InlineVideo video={video} onClose={close} />
+      </motion.div>
+    )
+  }
   return (
     <motion.button
       variants={rise}
       type="button"
-      onClick={() => open(video)}
+      onClick={open}
       aria-label={`Play latest upload: ${video.title}`}
       className="group flex h-20 w-full max-w-104 items-center gap-3 rounded-lg border border-fg/8 bg-surface pr-3 pl-2 text-left transition-colors hover:border-accent/40 md:gap-4 md:pr-6 lg:h-22 lg:max-w-90 2xl:h-36 2xl:max-w-[576px] 2xl:gap-6 2xl:rounded-xl 2xl:pr-10 2xl:pl-3"
     >

@@ -39,7 +39,7 @@ Run `npm run build && npm run lint && npm run format:check` before committing.
 
 ## Content model (planned)
 
-- **Videos**: YouTube IDs. Cards are facades (thumbnail from `i.ytimg.com`); clicking opens a "Video theater" modal that mounts the `youtube-nocookie.com` iframe and pauses the audio player.
+- **Videos**: YouTube IDs. Cards are facades (thumbnail from `i.ytimg.com`); clicking mounts a `youtube-nocookie.com` iframe inline and pauses the audio player. Fullscreen is handled by the embedded player.
 - **Recordings**: audio files (from Google Drive) with generated cover art drawn from each file's waveform peaks, key and tape number. Paginated list + docked player.
 - **Journey**: chapter list + fixed-height, scrollable reader panel (accordion on mobile). Comes right after the hero.
 - **Page order**: Hero → Journey → Videos → Listen → Connect/footer (nav follows this order).
@@ -64,11 +64,11 @@ Run `npm run build && npm run lint && npm run format:check` before committing.
 - **Player space**: the docked player sets --player-space to 80px plus the bottom safe-area inset on phone, 96px on tablet and 88px on desktop. Hero and footer reserve space for the dock. Listen shows up to five track rows per page.
 - **Responsive sections**: tablet sections fill at least one visible viewport and grow with content, with 120px above the content (88px nav plus 32px clearance) and 80px below. Phone sections follow content with 64px gutters. The hero is at least one viewport tall. On tablet-sized touch viewports, the hero and main sections track the visible browser height even when the desktop columns are active.
 - **Video meta**: views and age come from YouTube. The cards show YouTube thumbnails when available and use theme-specific fallback colors, play buttons and duration chips.
-- **Videos data**: `api/videos.ts` (Vercel function, env `YOUTUBE_API_KEY`) reads the featured playlist and channel from Sanity Site settings, returns `{ featured, latest }`, cached at the edge for 1h. Locally, a Vite plugin serves `api/*` and reads `.env.local`. Videos with embedding disabled show "This video can't play here · Open on YouTube" in the theater.
+- **Videos data**: `api/videos.ts` (Vercel function, env `YOUTUBE_API_KEY`) reads the featured playlist and channel from Sanity Site settings, returns `{ featured, latest }`, cached at the edge for 1h. Locally, a Vite plugin serves `/api/videos` and reads `.env.local`. Videos with embedding disabled show "This video can't play here · Open on YouTube" in the video frame.
 - **Footer** (every breakpoint): full-bleed `surface` band; "SK" monogram tile (serif italic on `accent-soft`) before the wordmark "Shikhar Kumar" (no dot after the name), a short description, Explore + Elsewhere columns, and a bottom row with "© 2026 Shikhar Kumar · Recorded at home" and a "Back to top" button. No extra social buttons.
 - **Docked player width**: exactly the nav's width (same gutters and content limit), 16px from the bottom, plus the phone safe-area inset (phone: mini player, 24px gutters like the top bar). Controls end with **Hide** (shrinks to a round bottom-right button with playing bars + progress ring; music keeps playing) and **Close** (stops the music, removes the player). Tablet bar: no shuffle/repeat, mute button only; desktop adds shuffle/repeat and the volume slider.
 - **Ultra-wide (≥ 2560, `2xl`)**: content `max-w-(--container-ultra)` (1600). The hero display line steps up to 144px (144/144).
 - **Touch targets**: 48px on phone and tablet (pagination, player and row play buttons).
-- **Layering**: nav 40 · player 50 · mobile sheet 55 · popovers (queue, theme) 60 · video theater 70.
+- **Layering**: nav 40 · player 50 · mobile sheet 55 · popovers (queue, theme) 60.
 - **Accessible names**: icon-only buttons need an `aria-label`. See the Paper board "09 · Handoff states" for the full list.
 - **Instagram card**: ship the static brand-tile fallback first (no API). Optional later: Instagram Graph API at build time (Creator/Business account + token), falling back to the static tiles on any failure.

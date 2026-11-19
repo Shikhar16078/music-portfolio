@@ -207,6 +207,7 @@ export function Videos() {
   const { data: settings } = useSiteSettings()
   const [expanded, setExpanded] = useState(false)
   const videos = data?.featured ?? []
+  const phone = useMediaQuery('(width < 48rem)')
   const tablet = useMediaQuery('(48rem <= width < 72rem)')
   const homeCount = tablet ? TABLET_HOME_COUNT : HOME_COUNT
   const canExpand = videos.length > homeCount
@@ -268,12 +269,14 @@ export function Videos() {
             <VideosFallback channelUrl={settings?.youtubeChannelUrl} />
           ) : (
             <>
-              <VideoGrid videos={videos} expanded={expanded} homeCount={homeCount} />
-              <VideoCarousel
-                videos={videos}
-                expanded={expanded}
-                onToggle={canExpand ? toggle : undefined}
-              />
+              {!phone && <VideoGrid videos={videos} expanded={expanded} homeCount={homeCount} />}
+              {phone && (
+                <VideoCarousel
+                  videos={videos}
+                  expanded={expanded}
+                  onToggle={canExpand ? toggle : undefined}
+                />
+              )}
               {canExpand && (
                 <div className="hidden justify-center md:flex">
                   <ShowMoreButton expanded={expanded} onToggle={toggle} />
