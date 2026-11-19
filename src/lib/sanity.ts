@@ -1,16 +1,25 @@
-import { createClient } from '@sanity/client'
 import { createImageUrlBuilder } from '@sanity/image-url'
 import type { PortableTextBlock } from '@portabletext/react'
 
-/** Read-only client for the public `production` dataset (no token needed). */
-export const sanity = createClient({
-  projectId: 't1hamr9e',
-  dataset: 'production',
-  apiVersion: '2025-01-01',
-  useCdn: true,
-})
+const projectId = 't1hamr9e'
+const dataset = 'production'
+const apiVersion = '2025-01-01'
+/** Public, cached query endpoint for the `production` dataset (read-only, no token). */
+const QUERY_URL = `https://${projectId}.apicdn.sanity.io/v${apiVersion}/data/query/${dataset}`
 
-const builder = createImageUrlBuilder(sanity)
+/**
+ * Minimal read-only Sanity client: one GET per GROQ query.
+ * (The official client adds ~500 kB for features this site never uses.)
+ */
+export const sanity = {
+  async fetch<T>(query: string): Promise<T> {
+    const res = await fetch(`${QUERY_URL}?query=${encodeURIComponent(query)}`)
+    if (!res.ok) throw new Error(`Sanity query failed (${res.status})`)
+    return ((await res.json()) as { result: T }).result
+  },
+}
+
+const builder = createImageUrlBuilder({ projectId, dataset })
 
 export type SanityImage = {
   asset?: { _ref: string }
