@@ -47,7 +47,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/__sanity/query': {
-        target: 'https://t1hamr9e.apicdn.sanity.io',
+        target: 'https://t1hamr9e.api.sanity.io',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/__sanity\/query/, '/v2025-01-01/data/query/production'),
       },

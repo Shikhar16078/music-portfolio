@@ -1,3 +1,4 @@
+import { publishedRecordings, recordingOrderId } from '../../studio/lib/recordingOrder'
 import { createImageUrlBuilder } from '@sanity/image-url'
 import type { PortableTextBlock } from '@portabletext/react'
 
@@ -15,7 +16,9 @@ const QUERY_URL = import.meta.env.DEV
  */
 export const sanity = {
   async fetch<T>(query: string): Promise<T> {
-    const res = await fetch(`${QUERY_URL}?query=${encodeURIComponent(query)}`)
+    const res = await fetch(`${QUERY_URL}?query=${encodeURIComponent(query)}`, {
+      cache: import.meta.env.DEV ? 'no-store' : 'default',
+    })
     if (!res.ok) throw new Error(`Sanity query failed (${res.status})`)
     return ((await res.json()) as { result: T }).result
   },
@@ -77,6 +80,7 @@ export type Recording = {
   tapeNumber: number
   kind: 'original' | 'cover'
   originalArtist?: string
+  category?: string
   key?: string
   note?: string
   recordedOn?: string
@@ -85,7 +89,10 @@ export type Recording = {
   audioUrl: string
 }
 
-export const recordingsQuery = `*[_type == "recording" && defined(audio.asset) && defined(tapeNumber)] | order(tapeNumber asc){
-  _id, title, tapeNumber, kind, originalArtist, key, note, recordedOn, featured, cover,
-  "audioUrl": audio.asset->url
+export const recordingsQuery = `{
+  "recordings": ${publishedRecordings}{
+    _id, title, kind, originalArtist, category, key, note, recordedOn, featured, cover,
+    "audioUrl": audio.asset->url
+  },
+  "order": coalesce(*[_id == "${recordingOrderId}"][0].ids, [])
 }`

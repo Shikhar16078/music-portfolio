@@ -5,19 +5,23 @@ import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon, ShuffleIcon } f
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Accent, SectionTitle } from '@/components/site/section'
+import { RecordingToolbar } from '@/components/site/recording-browser'
 import { TapeArt, Waveform } from '@/components/site/waveform'
 import { duration as dur, ease, rise, stagger } from '@/lib/motion'
 import { formatTime, kindLabel, longKey, pad2, shortKey, tapeLabel, trackTitle } from '@/lib/format'
 import { usePlayer } from '@/lib/player-context'
 import { useAudioDuration, useRecordings, useSiteSettings } from '@/lib/queries'
 import type { Recording } from '@/lib/sanity'
+import { useRecordingBrowser } from '@/lib/use-recording-browser'
 import { cn } from '@/lib/utils'
 
 const PER_PAGE = 5
+const desktopTrackRowHeight = 64
+const trackRowHeight = 'h-[74px] md:h-20 lg:h-(--listen-row-height)'
 const label = 'font-mono text-xs tracking-wide uppercase'
 
 /** Current page, kept in the URL as ?tapes=N so shared links open the same page. */
-function usePage(pageCount: number) {
+function usePage(pageCount: number, ready: boolean) {
   const [page, setPage] = useState(() => {
     const n = Number(new URLSearchParams(window.location.search).get('tapes'))
     return Number.isInteger(n) && n > 0 ? n : 1
@@ -25,11 +29,12 @@ function usePage(pageCount: number) {
   const clamped = Math.min(page, Math.max(1, pageCount))
 
   useEffect(() => {
+    if (!ready) return
     const url = new URL(window.location.href)
     if (clamped > 1) url.searchParams.set('tapes', String(clamped))
     else url.searchParams.delete('tapes')
     window.history.replaceState(null, '', url)
-  }, [clamped])
+  }, [clamped, ready])
 
   return [clamped, setPage] as const
 }
@@ -80,7 +85,8 @@ function TrackRow({ recording, queue }: { recording: Recording; queue: Recording
         className={cn(
           // Every row: same padding (content lines up), same rounded shape on hover and when playing.
           // The divider is drawn inset and hides on hover / when playing, so rounded corners stay clean.
-          'group relative -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[56px_1fr_48px] items-center gap-4 rounded-2xl border border-transparent px-3 py-2 text-left transition-colors md:mx-0 md:h-20 md:w-full md:grid-cols-[24px_48px_1fr_72px_40px_48px] md:px-4 md:py-0 lg:h-16 lg:grid-cols-[48px_48px_1fr_96px_56px]',
+          trackRowHeight,
+          'group relative -mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[56px_1fr_48px] items-center gap-4 rounded-2xl border border-transparent px-3 py-2 text-left transition-colors md:mx-0 md:w-full md:grid-cols-[24px_48px_1fr_72px_40px_48px] md:px-4 md:py-0 lg:grid-cols-[48px_48px_1fr_96px_56px]',
           'after:absolute after:inset-x-3 after:-bottom-px after:h-px after:bg-border md:after:inset-x-4',
           'hover:bg-surface hover:after:opacity-0 focus-visible:outline-2 focus-visible:outline-accent',
           isCurrent && 'border-accent/35 bg-accent-soft after:opacity-0 hover:bg-accent-soft',
@@ -159,14 +165,16 @@ function FeaturedCard({ recording, queue }: { recording: Recording; queue: Recor
   )
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="min-w-0 lg:col-start-1 lg:row-start-2">
       {/* Phone: label, title + button, slim waveform */}
       <article className={cn(card, 'flex flex-col gap-4 p-5 md:hidden')}>
         <p className={cn('relative text-recording-wave', label)}>
           {tapeLabel(recording)} · {shortKey(recording.key)}
         </p>
         <div className="relative flex items-center justify-between gap-4">
-          <h3 className="font-heading text-2xl font-medium tracking-h3 text-balance">{title}</h3>
+          <h3 className="font-heading text-xl leading-7 font-medium tracking-h3 text-balance">
+            {title}
+          </h3>
           {playButton(false)}
         </div>
         <div className="relative h-8 text-recording-wave">
@@ -191,7 +199,7 @@ function FeaturedCard({ recording, queue }: { recording: Recording; queue: Recor
               .filter(Boolean)
               .join(' · ')}
           </p>
-          <h3 className="font-heading text-[32px] leading-10 font-medium tracking-h3">{title}</h3>
+          <h3 className="font-heading text-[28px] leading-9 font-medium tracking-h3">{title}</h3>
           <p className="text-sm text-fg-muted">
             {recording.note && <>{recording.note} </>}
             {meta}
@@ -201,16 +209,21 @@ function FeaturedCard({ recording, queue }: { recording: Recording; queue: Recor
       </article>
 
       {/* Desktop: square card, title bottom-left, big button bottom-right */}
-      <article className={cn(card, 'hidden aspect-square flex-col justify-between p-8 lg:flex')}>
+      <article
+        className={cn(card, 'hidden h-full min-h-0 flex-col justify-between gap-3 p-8 lg:flex')}
+      >
         <div className={cn('relative flex justify-between gap-4 text-recording-wave', label)}>
           <span>SK — {tapeLabel(recording)}</span>
           <span>{longKey(recording.key)?.toUpperCase()}</span>
         </div>
-        <div className="relative h-40 text-recording-wave">
+        <div className="relative min-h-0 flex-1 text-recording-wave">
           <Waveform seed={recording._id} bars={40} progress={progress} barClassName="w-1.5" />
         </div>
         <div className="relative flex items-end justify-between gap-6">
-          <h3 className="min-w-0 font-heading text-2xl font-medium tracking-display text-balance break-words">
+          <h3
+            title={title}
+            className="line-clamp-3 min-w-0 font-heading text-[clamp(20px,1.67vw,24px)] leading-8 font-medium tracking-display text-balance break-words"
+          >
             {title}
           </h3>
           {playButton(true)}
@@ -321,43 +334,51 @@ export function Listen() {
   const { data: recordings, isPending, isError } = useRecordings()
   const { data: settings } = useSiteSettings()
   const player = usePlayer()
-  const total = recordings?.length ?? 0
+  const [searchPage, setSearchPage] = useState(1)
+  const browser = useRecordingBrowser(recordings ?? [])
+  const matches = browser.results
+  const total = matches.length
   const pageCount = Math.max(1, Math.ceil(total / PER_PAGE))
-  const [page, setPage] = usePage(pageCount)
-
-  const pageItems = recordings?.slice((page - 1) * PER_PAGE, page * PER_PAGE) ?? []
+  const [playlistPage, setPlaylistPage] = usePage(
+    Math.ceil((recordings?.length ?? 0) / PER_PAGE),
+    Boolean(recordings),
+  )
+  const page = browser.active ? Math.min(searchPage, pageCount) : playlistPage
+  const setPage = browser.active ? setSearchPage : setPlaylistPage
+  const pageItems = matches.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+  const emptySlots = PER_PAGE - pageItems.length
   const featured =
     (player.current && recordings?.find((r) => r._id === player.current?._id)) ??
     recordings?.find((r) => r.featured) ??
     recordings?.[0]
 
   return (
-    <section id="listen" className={screenSection}>
+    <section id="listen" className={cn(screenSection, 'listen-section')}>
       <motion.div
         key={isPending ? 'loading' : 'ready'}
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: '-80px' }}
         variants={stagger}
-        className="site-container flex flex-col gap-8 md:gap-10 lg:gap-12"
+        className="listen-content site-container flex flex-col gap-8 md:gap-10 lg:gap-12"
       >
         <motion.header
           variants={rise}
           className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6"
         >
-          <div className="flex flex-col gap-4">
+          <div className="listen-heading flex flex-col gap-4">
             <p className={cn(label, 'text-accent')}>Listen · Audio only</p>
             <SectionTitle>
               From the <Accent>practice tapes.</Accent>
             </SectionTitle>
           </div>
-          <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between lg:flex-col lg:items-end lg:justify-start">
+          <div className="listen-actions flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between lg:flex-col lg:items-end lg:justify-start">
             {settings?.listenIntro && (
               <p className="text-lg text-fg-muted lg:text-right lg:text-base">
                 {settings.listenIntro}
               </p>
             )}
-            {total > 0 && (
+            {Boolean(recordings?.length) && (
               <Button
                 onClick={() => recordings && player.shufflePlay(recordings)}
                 className="h-12 rounded-full px-6 text-base lg:h-10 lg:px-5 lg:text-sm"
@@ -375,34 +396,58 @@ export function Listen() {
           ) : isError || !recordings?.length || !featured ? (
             <QuietTapes />
           ) : (
-            <div className="grid gap-6 lg:grid-cols-[min(352px,32%)_minmax(0,1fr)] lg:gap-12">
+            <div
+              className="grid gap-6 lg:grid-cols-[min(352px,32%)_minmax(0,1fr)] lg:grid-rows-[auto_calc(var(--listen-row-height)*var(--listen-page-size))] lg:gap-x-12 lg:gap-y-3"
+              style={
+                {
+                  '--listen-row-height': `${desktopTrackRowHeight}px`,
+                  '--listen-page-size': PER_PAGE,
+                } as React.CSSProperties
+              }
+            >
               <FeaturedCard recording={featured} queue={recordings} />
-              <div className="flex flex-col gap-6">
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.ul
-                    key={page}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: dur.quick, ease: ease.breath }}
-                    className="flex flex-col gap-1 md:gap-0"
+              <RecordingToolbar
+                browser={browser}
+                onChange={() => setSearchPage(1)}
+                className="lg:col-start-2 lg:row-start-1"
+              />
+              <div className="md:max-lg:row-start-4 lg:col-start-2 lg:row-start-2 lg:min-h-0">
+                {total ? (
+                  <AnimatePresence mode="wait" initial={false}>
+                    <motion.ul
+                      key={page}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: dur.quick, ease: ease.breath }}
+                      className="flex flex-col gap-1 md:gap-0"
+                    >
+                      {pageItems.map((recording) => (
+                        <TrackRow key={recording._id} recording={recording} queue={matches} />
+                      ))}
+                      {Array.from({ length: emptySlots }, (_, index) => (
+                        <li
+                          key={index}
+                          aria-hidden="true"
+                          className={cn(trackRowHeight, pageCount === 1 && 'hidden lg:block')}
+                        />
+                      ))}
+                    </motion.ul>
+                  </AnimatePresence>
+                ) : (
+                  <p
+                    role="status"
+                    className="grid min-h-24 place-items-center text-fg-muted lg:h-full"
                   >
-                    {pageItems.map((r) => (
-                      <TrackRow key={r._id} recording={r} queue={recordings} />
-                    ))}
-                  </motion.ul>
-                </AnimatePresence>
-                {pageCount > 1 && (
-                  <div className="md:max-lg:-order-1">
-                    <Pagination
-                      page={page}
-                      pageCount={pageCount}
-                      total={total}
-                      onChange={setPage}
-                    />
-                  </div>
+                    No recordings match your search.
+                  </p>
                 )}
               </div>
+              {pageCount > 1 && (
+                <div className="listen-pagination md:max-lg:row-start-3 lg:col-start-2 lg:row-start-3 lg:pt-3">
+                  <Pagination page={page} pageCount={pageCount} total={total} onChange={setPage} />
+                </div>
+              )}
             </div>
           )}
         </motion.div>

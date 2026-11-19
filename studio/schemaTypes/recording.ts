@@ -28,8 +28,9 @@ export const recording = defineType({
       name: 'tapeNumber',
       title: 'Tape number',
       type: 'number',
-      description: 'Sets the order in the list (1 = first).',
-      validation: (rule) => rule.required().integer().min(1),
+      description: 'Legacy ordering. Manage tape positions from Recording order.',
+      hidden: true,
+      readOnly: true,
     }),
     defineField({
       name: 'kind',
@@ -52,6 +53,13 @@ export const recording = defineType({
       type: 'string',
       description: 'Who wrote or first performed it, e.g. "Ludovico Einaudi".',
       hidden: ({parent}) => parent?.kind !== 'cover',
+    }),
+    defineField({
+      name: 'category',
+      title: 'Category',
+      type: 'string',
+      description: 'Used by the recording filters on the website.',
+      options: {list: ['Hindi', 'English', 'Classical']},
     }),
     defineField({
       name: 'key',
@@ -87,25 +95,16 @@ export const recording = defineType({
       options: {hotspot: true},
     }),
   ],
-  orderings: [
-    {
-      title: 'Tape number',
-      name: 'tapeNumberAsc',
-      by: [{field: 'tapeNumber', direction: 'asc'}],
-    },
-  ],
   preview: {
     select: {
       title: 'title',
-      tape: 'tapeNumber',
       kind: 'kind',
       key: 'key',
       featured: 'featured',
       media: 'cover',
     },
-    prepare({title, tape, kind, key, featured, media}) {
+    prepare({title, kind, key, featured, media}) {
       const parts = [
-        tape ? `Tape ${String(tape).padStart(2, '0')}` : null,
         kind === 'cover' ? 'Cover' : 'Original',
         key,
         featured ? '★ Featured' : null,

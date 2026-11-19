@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import {
   ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   CircleAlertIcon,
   ListMusicIcon,
   LoaderCircleIcon,
@@ -23,10 +25,16 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { Slider } from '@/components/ui/slider'
+import { RecordingToolbar } from '@/components/site/recording-browser'
 import { LiveVisualizer, TapeArt } from '@/components/site/waveform'
-import { formatTime, longKey, tapeLabel, trackTitle } from '@/lib/format'
+import { formatTime, kindLabel, longKey, tapeLabel, trackTitle } from '@/lib/format'
+import { desktopMediaQuery } from '@/lib/layout'
 import { spring } from '@/lib/motion'
+import { useAudioDuration, useRecordings } from '@/lib/queries'
+import type { Recording } from '@/lib/sanity'
 import { usePlayer } from '@/lib/player-context'
+import { useMediaQuery } from '@/lib/use-media-query'
+import { useRecordingBrowser } from '@/lib/use-recording-browser'
 import { cn } from '@/lib/utils'
 
 const label = 'font-mono text-xs tracking-wide uppercase'
@@ -297,14 +305,17 @@ function DockedBar() {
 
 /** Hide: shrink to a small floating button, music keeps playing. Close: stop and remove. */
 function HideCloseButtons() {
-  const { setHidden, close } = usePlayer()
+  const { setExpanded, setHidden, close } = usePlayer()
   return (
     <>
       <Button
         variant="ghost"
         size="icon"
         aria-label="Hide player"
-        onClick={() => setHidden(true)}
+        onClick={() => {
+          setExpanded(false)
+          setHidden(true)
+        }}
         className={iconButton}
       >
         <MinimizeIcon />
@@ -398,18 +409,178 @@ function MiniPlayer() {
   )
 }
 
+const QUEUE_PAGE_SIZE = 5
+
+function ExpandedQueueRow({
+  track,
+  queue,
+  index,
+}: {
+  track: Recording
+  queue?: Recording[]
+  index: number
+}) {
+  const { current, playing, playTrack } = usePlayer()
+  const { data: length } = useAudioDuration(track.audioUrl)
+  const selected = current?._id === track._id
+  return (
+    <li>
+      <button
+        type="button"
+        aria-current={selected ? 'true' : undefined}
+        onClick={() => playTrack(track, queue)}
+        className={cn(
+          'grid h-full w-full grid-cols-[24px_minmax(0,1fr)_48px] items-center gap-3 rounded-xl px-3 text-left hover:bg-surface-raised focus-visible:outline-2 focus-visible:outline-accent',
+          selected && 'bg-accent-soft',
+        )}
+      >
+        <span
+          aria-hidden="true"
+          className="grid place-items-center font-mono text-xs text-fg-muted"
+        >
+          {selected ? <EqGlyph playing={playing} /> : String(index).padStart(2, '0')}
+        </span>
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="truncate text-sm font-medium">{trackTitle(track)}</span>
+          <span className="truncate text-xs text-fg-muted">
+            {tapeLabel(track)} · {selected && playing ? 'Playing' : kindLabel(track)}
+          </span>
+        </span>
+        <span className="text-right font-mono text-xs text-fg-muted">{formatTime(length)}</span>
+      </button>
+    </li>
+  )
+}
+
+function ExpandedDesktopPlayer({ current }: { current: Recording }) {
+  const { upNext, errorNotice } = usePlayer()
+  const { data: recordings } = useRecordings()
+  const [requestedPage, setPage] = useState(1)
+  const queue = [current, ...upNext.filter((track) => track._id !== current._id)]
+  const browser = useRecordingBrowser(recordings ?? queue)
+  const tracks = browser.active ? browser.results : queue
+  const total = tracks.length
+  const pageCount = Math.max(1, Math.ceil(total / QUEUE_PAGE_SIZE))
+  const page = Math.min(requestedPage, pageCount)
+  const offset = (page - 1) * QUEUE_PAGE_SIZE
+  const arrow = 'size-9 rounded-full border-border-strong bg-transparent'
+
+  return (
+    <div className="site-container hidden h-full flex-col gap-6 overflow-y-auto py-6 lg:flex">
+      <div className="flex h-11 shrink-0 items-center">
+        <SheetTitle className={cn(label, 'font-normal text-fg-muted')}>Practice tapes</SheetTitle>
+        <SheetDescription className="sr-only">Now playing {trackTitle(current)}</SheetDescription>
+      </div>
+      <div className="grid min-h-105 flex-1 grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-6">
+        <div className="flex min-h-0 flex-col gap-6 overflow-hidden rounded-3xl border border-border bg-recording-bg p-8">
+          <div className={cn(label, 'text-recording-fg')}>Now playing · {tapeLabel(current)}</div>
+          <div className="flex min-h-0 flex-1 items-center text-recording-wave">
+            <LiveVisualizer seed={current._id} className="h-1/2 max-h-40 w-full" />
+          </div>
+          <div>
+            <p
+              className="line-clamp-3 font-heading text-[clamp(28px,3.2vw,46px)] leading-[1.12] font-medium tracking-h3 text-recording-fg"
+              title={trackTitle(current)}
+            >
+              {trackTitle(current)}
+            </p>
+            <p className="mt-2 text-sm text-fg-muted">
+              {[kindLabel(current), longKey(current.key)].filter(Boolean).join(' · ')}
+            </p>
+          </div>
+        </div>
+        <section
+          aria-label="Recording queue"
+          className="flex min-h-0 min-w-0 flex-col gap-2 rounded-3xl border border-border bg-surface p-6"
+        >
+          <h2 className="font-heading text-[27px] leading-9">
+            {browser.active ? 'Recordings' : 'Up next'}
+          </h2>
+          <RecordingToolbar browser={browser} onChange={() => setPage(1)} />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {total ? (
+              <ul className="grid h-full min-h-55 grid-rows-5 gap-1">
+                {tracks.slice(offset, offset + QUEUE_PAGE_SIZE).map((track, index) => (
+                  <ExpandedQueueRow
+                    key={track._id}
+                    track={track}
+                    queue={browser.active ? tracks : undefined}
+                    index={offset + index + 1}
+                  />
+                ))}
+              </ul>
+            ) : (
+              <p role="status" className="grid h-full place-items-center text-sm text-fg-muted">
+                No recordings match your filters.
+              </p>
+            )}
+          </div>
+          {pageCount > 1 && (
+            <nav
+              aria-label="Queue pages"
+              className="flex shrink-0 items-center justify-between gap-2 pr-3 pl-12 font-mono text-xs text-fg-muted"
+            >
+              <span>
+                {offset + 1}–{Math.min(offset + QUEUE_PAGE_SIZE, total)} of {total} recordings
+              </span>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={arrow}
+                  aria-label="Previous queue page"
+                  disabled={page === 1}
+                  onClick={() => setPage(page - 1)}
+                >
+                  <ChevronLeftIcon />
+                </Button>
+                <span>
+                  Page {page} of {pageCount}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={arrow}
+                  aria-label="Next queue page"
+                  disabled={page === pageCount}
+                  onClick={() => setPage(page + 1)}
+                >
+                  <ChevronRightIcon />
+                </Button>
+              </div>
+            </nav>
+          )}
+        </section>
+      </div>
+      <div className="flex shrink-0 flex-col gap-3">
+        {errorNotice ? <ErrorBanner /> : <Progress />}
+        <div className="relative flex h-14 items-center justify-center">
+          <div className="[&>div]:gap-3 [&>div>button]:size-10 [&>div>button:nth-child(3)]:size-14">
+            <Transport size="lg" />
+          </div>
+          <div className="absolute right-4 flex items-center gap-2">
+            <HideCloseButtons />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** Full-screen player with the live visualizer (phone sheet; also opened from the desktop bar). */
 function ExpandedPlayer() {
   const { current, expanded, setExpanded, errorNotice } = usePlayer()
+  const desktop = useMediaQuery(desktopMediaQuery)
   return (
     <Sheet open={expanded && Boolean(current)} onOpenChange={setExpanded}>
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className="z-[55] max-h-none gap-0 border-0 bg-[linear-gradient(to_bottom,color-mix(in_srgb,var(--accent)_14%,var(--surface)),var(--bg)_45%)] p-0 data-[side=bottom]:top-0 data-[side=bottom]:h-svh"
+        className="z-[55] max-h-none gap-0 border-0 bg-[linear-gradient(to_bottom,color-mix(in_srgb,var(--accent)_14%,var(--surface)),var(--bg)_45%)] p-0 data-[side=bottom]:top-0 data-[side=bottom]:h-svh lg:bg-bg lg:bg-none"
       >
-        {current && (
-          <div className="mx-auto flex h-full w-full max-w-md flex-col gap-8 overflow-y-auto px-6 pt-6 pb-10">
+        {current && desktop && <ExpandedDesktopPlayer current={current} />}
+        {current && !desktop && (
+          <div className="mx-auto flex h-full w-full max-w-md flex-col gap-8 overflow-y-auto px-6 pt-6 pb-10 lg:hidden">
             <div className="flex items-center justify-between">
               <Button
                 variant="secondary"

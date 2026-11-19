@@ -1,3 +1,4 @@
+import { applyRecordingOrder } from '../../studio/lib/recordingOrder'
 import { useQuery } from '@tanstack/react-query'
 import {
   chaptersQuery,
@@ -35,10 +36,23 @@ export function useChapters() {
 
 /** Practice tapes, ordered by tape number. */
 export function useRecordings() {
+  const preview = import.meta.env.DEV
+    ? new URLSearchParams(window.location.search).get('tapeOrder')
+    : null
   return useQuery({
-    queryKey: ['recordings'],
-    queryFn: () => sanity.fetch<Recording[]>(recordingsQuery),
-    staleTime: 5 * 60 * 1000,
+    queryKey: ['recordings', preview],
+    queryFn: async () => {
+      const { recordings, order } = await sanity.fetch<{
+        recordings: Omit<Recording, 'tapeNumber'>[]
+        order: string[]
+      }>(recordingsQuery)
+      const ids = preview ? preview.split(',') : order
+      return applyRecordingOrder(recordings, ids).map((recording, index) => ({
+        ...recording,
+        tapeNumber: index + 1,
+      }))
+    },
+    staleTime: import.meta.env.DEV ? 0 : 5 * 60 * 1000,
   })
 }
 

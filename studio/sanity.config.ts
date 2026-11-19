@@ -4,7 +4,7 @@ import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
 
-const SINGLETONS = new Set(['siteSettings'])
+const SINGLETONS = new Set(['siteSettings', 'recordingOrder'])
 
 export default defineConfig({
   name: 'default',

@@ -507,7 +507,8 @@
 
 @media (width >= 72rem) and (height < 820px) {
   .videos-section,
-  .journey-section {
+  .journey-section,
+  .listen-section {
     min-height: 100svh;
     padding-bottom: max(32px, calc(var(--player-space) + 16px));
   }
@@ -539,5 +540,18 @@
 
   .journey-chapter-scroll {
     height: clamp(120px, calc(100svh - 440px - var(--player-space)), 256px);
+  }
+
+  .listen-content {
+    gap: 16px;
+  }
+
+  .listen-heading,
+  .listen-actions {
+    gap: 8px;
+  }
+
+  .listen-pagination {
+    padding-top: 0;
   }
 }
