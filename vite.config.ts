@@ -1,23 +1,32 @@
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
+import { parseEnv } from 'node:util'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 
 /**
- * Serves `api/<name>.ts` during `npm run dev` the way Vercel does in production
- * (GET handlers only), with variables from `.env.local` available on process.env.
+ * Serves the YouTube endpoint during local development using the local server key.
  */
 function localApi(): Plugin {
   return {
     name: 'local-api',
     configureServer(server) {
-      Object.assign(process.env, loadEnv(server.config.mode, process.cwd(), ''))
+      const { envDir, mode } = server.config
+      const localEnvPath = envDir && path.join(envDir, '.env.local')
+      // Vite config reloads can keep an older key in process.env.
+      const localEnv =
+        localEnvPath && existsSync(localEnvPath) ? parseEnv(readFileSync(localEnvPath, 'utf8')) : {}
+      const youtubeKey =
+        localEnv.YOUTUBE_API_KEY ??
+        (envDir
+          ? loadEnv(mode, envDir, 'YOUTUBE_API_KEY').YOUTUBE_API_KEY
+          : process.env.YOUTUBE_API_KEY)
       server.middlewares.use(async (req, res, next) => {
-        const name = /^\/api\/([\w-]+)/.exec(req.url ?? '')?.[1]
-        if (!name || req.method !== 'GET') return next()
+        if (req.url?.split('?')[0] !== '/api/videos' || req.method !== 'GET') return next()
         try {
-          const mod = await server.ssrLoadModule(`/api/${name}.ts`)
-          const response: Response = await mod.GET(new Request(`http://localhost${req.url}`))
+          const mod = await server.ssrLoadModule('/api/videos.ts')
+          const response: Response = await mod.getVideos(youtubeKey)
           res.statusCode = response.status
           response.headers.forEach((value, key) => res.setHeader(key, value))
           res.end(Buffer.from(await response.arrayBuffer()))
@@ -32,6 +41,18 @@ function localApi(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss(), localApi()],
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      '/__sanity/query': {
+        target: 'https://t1hamr9e.apicdn.sanity.io',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/__sanity\/query/, '/v2025-01-01/data/query/production'),
+      },
+    },
+  },
   build: {
     rolldownOptions: {
       output: {

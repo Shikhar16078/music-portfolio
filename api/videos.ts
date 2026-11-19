@@ -38,12 +38,11 @@ type YtVideo = {
 async function yt<T>(path: string, params: Record<string, string>, key: string): Promise<T> {
   const url = new URL(`${YT}/${path}`)
   Object.entries({ ...params, key }).forEach(([k, v]) => url.searchParams.set(k, v))
-  const res = await fetch(url)
-  if (!res.ok) {
-    const detail = ((await res.json().catch(() => null)) as { error?: { message?: string } } | null)
-      ?.error?.message
-    throw new Error(`YouTube ${path} ${res.status}${detail ? `: ${detail}` : ''}`)
-  }
+  const res = await fetch(url).catch(() => {
+    // The request URL contains the API key. Keep network errors free of URL details.
+    throw new Error(`YouTube ${path} was unreachable`)
+  })
+  if (!res.ok) throw new Error(`YouTube ${path} request failed (${res.status})`)
   return res.json() as Promise<T>
 }
 
@@ -112,18 +111,26 @@ async function playlistVideoIds(playlistId: string, max: number, key: string) {
   return data.items.map((i) => i.contentDetails.videoId)
 }
 
-export async function GET(): Promise<Response> {
-  const key = process.env.YOUTUBE_API_KEY
+export function GET(): Promise<Response> {
+  return getVideos(process.env.YOUTUBE_API_KEY)
+}
+
+export async function getVideos(apiKey?: string): Promise<Response> {
+  const key = apiKey?.trim()
   if (!key) return Response.json({ error: 'YOUTUBE_API_KEY is not set' }, { status: 503 })
 
   try {
-    const settings = (await (await fetch(SANITY_QUERY)).json()) as {
+    const response = await fetch(SANITY_QUERY).catch((cause: unknown) => {
+      throw new Error('Sanity was unreachable while reading video settings', { cause })
+    })
+    if (!response.ok) throw new Error(`Sanity video settings request failed (${response.status})`)
+    const settings = (await response.json()) as {
       result?: { youtubePlaylistId?: string; youtubeChannelUrl?: string }
     }
     const playlistId = playlistIdFrom(settings.result?.youtubePlaylistId)
     const lookup = channelLookup(settings.result?.youtubeChannelUrl)
 
-    const [featured, latest] = await Promise.all([
+    const [featuredResult, latestResult] = await Promise.allSettled([
       playlistId
         ? playlistVideoIds(playlistId, FEATURED_MAX, key).then((ids) => videosById(ids, key))
         : Promise.resolve([]),
@@ -141,9 +148,22 @@ export async function GET(): Promise<Response> {
         : Promise.resolve(null),
     ])
 
+    for (const result of [featuredResult, latestResult]) {
+      if (result.status === 'rejected') console.error(result.reason)
+    }
+    const featured = featuredResult.status === 'fulfilled' ? featuredResult.value : []
+    const latest = latestResult.status === 'fulfilled' ? latestResult.value : null
+    const partial = featuredResult.status === 'rejected' || latestResult.status === 'rejected'
+    if (partial && !featured.length && !latest) {
+      return Response.json({ error: 'Could not load videos from YouTube' }, { status: 502 })
+    }
     const body: VideosResponse = { featured, latest }
     return Response.json(body, {
-      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' },
+      headers: {
+        'Cache-Control': partial
+          ? 'no-store'
+          : 'public, s-maxage=3600, stale-while-revalidate=86400',
+      },
     })
   } catch (error) {
     console.error(error)

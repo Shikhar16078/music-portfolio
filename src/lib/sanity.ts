@@ -5,7 +5,9 @@ const projectId = 't1hamr9e'
 const dataset = 'production'
 const apiVersion = '2025-01-01'
 /** Public, cached query endpoint for the `production` dataset (read-only, no token). */
-const QUERY_URL = `https://${projectId}.apicdn.sanity.io/v${apiVersion}/data/query/${dataset}`
+const QUERY_URL = import.meta.env.DEV
+  ? '/__sanity/query'
+  : `https://${projectId}.apicdn.sanity.io/v${apiVersion}/data/query/${dataset}`
 
 /**
  * Minimal read-only Sanity client: one GET per GROQ query.
